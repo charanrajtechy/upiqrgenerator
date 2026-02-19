@@ -20,9 +20,8 @@ This project is designed for lightweight deployment and maximum privacy.
 
 **Type:** Static Single Page Application (SPA)  
 **Stack:**  
-- HTML5  
-- CSS3 (Light/Dark theme support)  
-- Vanilla JavaScript  
+- TYPE SCRIPT  
+- CSS 
 - Client-side QR generation library  
 
 **Data Handling Model:**
