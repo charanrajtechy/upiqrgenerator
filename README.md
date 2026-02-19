@@ -21,7 +21,9 @@ This project is designed for lightweight deployment and maximum privacy.
 **Type:** Static Single Page Application (SPA)  
 **Stack:**  
 - TYPE SCRIPT  
-- CSS 
+- CSS
+- HTML
+- JAVA SCRIPT
 - Client-side QR generation library  
 
 **Data Handling Model:**
