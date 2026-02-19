@@ -54,7 +54,7 @@ Optional parameters are appended only if provided:
 ### Example (Full Parameters)
 
 ```
-upi://pay?pa=9951238916@fam&pn=CLP%20Studio&am=200&cu=INR&tn=Advance
+upi://pay?pa={upi_id}&pn={name}&am={amount}&cu=INR&tn={note}
 ```
 
 ### Dynamic Rules
