@@ -1,55 +1,41 @@
 import { useRef, useState, useCallback } from "react";
 import QRCode from "qrcode";
-import { toPng } from "html-to-image";
+import ThemeToggle from "@/components/upi/ThemeToggle";
+import InputField from "@/components/upi/InputField";
+import PresetAmounts from "@/components/upi/PresetAmounts";
+import LogoUpload from "@/components/upi/LogoUpload";
+import TemplateActions from "@/components/upi/TemplateActions";
+import StyleSelector from "@/components/upi/StyleSelector";
+import QRPreviewCard from "@/components/upi/QRPreviewCard";
+import { buildUpiLink } from "@/components/upi/buildUpiLink";
+import { shareQR, downloadQR } from "@/components/upi/shareQR";
+import type { FormData, QRData, CardStyle, Template } from "@/components/upi/types";
 
 const UPI_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
 
-interface FormData {
-  upiId: string;
-  name: string;
-  amount: string;
-  note: string;
-}
-
-interface QRData {
-  upiLink: string;
-  qrDataUrl: string;
-  name: string;
-  upiId: string;
-  amount: string;
-  note: string;
-}
-
 const UpiQrGenerator = () => {
-  const [form, setForm] = useState<FormData>({
-    upiId: "",
-    name: "",
-    amount: "",
-    note: "",
-  });
+  const [form, setForm] = useState<FormData>({ upiId: "", name: "", amount: "", note: "", label: "" });
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [cardStyle, setCardStyle] = useState<CardStyle>(() => {
+    return (localStorage.getItem("qr_card_style") as CardStyle) || "minimal";
+  });
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [shareMsg, setShareMsg] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const validate = (): boolean => {
     const e: Partial<FormData> = {};
     const upiId = form.upiId.trim();
-    const name = form.name.trim();
     const amount = form.amount.trim();
-    const note = form.note.trim();
 
     if (!upiId) e.upiId = "UPI ID is required";
     else if (!UPI_REGEX.test(upiId)) e.upiId = "Invalid UPI ID (e.g. name@bank)";
 
-    if (!name) e.name = "Name is required";
-    else if (name.length > 100) e.name = "Name too long";
-
-    if (!amount) e.amount = "Amount is required";
-    else if (isNaN(Number(amount)) || Number(amount) <= 0) e.amount = "Enter a valid positive amount";
-
-    if (!note) e.note = "Payment note is required";
-    else if (note.length > 200) e.note = "Note too long";
+    if (amount && (isNaN(Number(amount)) || Number(amount) <= 0)) {
+      e.amount = "Enter a valid positive amount";
+    }
 
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -63,58 +49,68 @@ const UpiQrGenerator = () => {
     const name = form.name.trim();
     const amount = form.amount.trim();
     const note = form.note.trim();
+    const label = form.label.trim();
 
-    const upiLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(name)}&am=${encodeURIComponent(amount)}&cu=INR&tn=${encodeURIComponent(note)}`;
+    const upiLink = buildUpiLink(upiId, name, amount, note);
 
     try {
       const qrDataUrl = await QRCode.toDataURL(upiLink, {
-        width: 280,
+        width: 1024,
         margin: 2,
         color: { dark: "#1a1a2e", light: "#ffffff" },
-        errorCorrectionLevel: "M",
+        errorCorrectionLevel: "H",
       });
-      setQrData({ upiLink, qrDataUrl, name, upiId, amount, note });
+      setQrData({ upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined });
     } catch {
       console.error("QR generation failed");
     } finally {
       setGenerating(false);
     }
-  }, [form]);
+  }, [form, logoDataUrl]);
 
-  const handleDownload = useCallback(async () => {
-    if (!cardRef.current) return;
+  const handleShare = useCallback(async () => {
+    if (!cardRef.current || !qrData) return;
     try {
-      const dataUrl = await toPng(cardRef.current, {
-        backgroundColor: "#ffffff",
-        pixelRatio: 3,
-      });
-      const link = document.createElement("a");
-      link.download = `upi-qr-${qrData?.name?.replace(/\s+/g, "-")}.png`;
-      link.href = dataUrl;
-      link.click();
+      const result = await shareQR(cardRef.current, qrData.name, qrData.upiId, qrData.amount, qrData.note);
+      if (result === "downloaded") {
+        setShareMsg("QR downloaded. You can share it manually.");
+        setTimeout(() => setShareMsg(""), 4000);
+      }
     } catch {
-      console.error("Download failed");
+      // user cancelled share
     }
   }, [qrData]);
 
-  const handleTestPayment = () => {
-    if (qrData?.upiLink) window.open(qrData.upiLink, "_self");
-  };
+  const handleDownload = useCallback(async () => {
+    if (!cardRef.current || !qrData) return;
+    await downloadQR(cardRef.current, qrData.name, qrData.upiId);
+  }, [qrData]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
+  const handleStyleChange = (style: CardStyle) => {
+    setCardStyle(style);
+    localStorage.setItem("qr_card_style", style);
+  };
+
+  const handleTemplateLoad = useCallback((t: Template) => {
+    setForm((prev) => ({ ...prev, upiId: t.upiId, name: t.name }));
+  }, []);
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-8 sm:py-12">
+      <ThemeToggle />
+
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">
           Open UPI QR Generator
         </h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base max-w-md">
-          Generate professional UPI QR codes for fixed payments. No tracking, no storage — 100% private.
+          Generate professional UPI QR codes for payments. No tracking, no storage — 100% private.
         </p>
       </div>
 
@@ -125,30 +121,54 @@ const UpiQrGenerator = () => {
           placeholder="yourname@paytm"
           value={form.upiId}
           error={errors.upiId}
+          showCopy
           onChange={(v) => handleChange("upiId", v)}
         />
+
+        <TemplateActions upiId={form.upiId} name={form.name} onLoad={handleTemplateLoad} />
+
         <InputField
-          label="Name"
+          label="Owner Name"
           placeholder="Your full name"
           value={form.name}
           error={errors.name}
+          optional
           onChange={(v) => handleChange("name", v)}
         />
-        <InputField
-          label="Amount (₹)"
-          placeholder="500"
-          type="number"
-          value={form.amount}
-          error={errors.amount}
-          onChange={(v) => handleChange("amount", v)}
-        />
+
+        <div className="space-y-2">
+          <InputField
+            label="Amount (₹)"
+            placeholder="500"
+            type="number"
+            value={form.amount}
+            error={errors.amount}
+            optional
+            onChange={(v) => handleChange("amount", v)}
+          />
+          <PresetAmounts currentAmount={form.amount} onSelect={(v) => handleChange("amount", v)} />
+        </div>
+
         <InputField
           label="Payment Note"
           placeholder="Advance for project work"
           value={form.note}
           error={errors.note}
+          optional
           onChange={(v) => handleChange("note", v)}
         />
+
+        <InputField
+          label="Payment Title / Label"
+          placeholder="Invoice #1234"
+          value={form.label}
+          optional
+          onChange={(v) => handleChange("label", v)}
+        />
+
+        <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
+
+        <StyleSelector value={cardStyle} onChange={handleStyleChange} />
 
         <button
           onClick={handleGenerate}
@@ -162,25 +182,7 @@ const UpiQrGenerator = () => {
       {/* QR Preview */}
       {qrData && (
         <div className="mt-8 w-full max-w-md space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Downloadable card */}
-          <div
-            ref={cardRef}
-            className="bg-card rounded-xl shadow-card p-8 flex flex-col items-center"
-          >
-            <img
-              src={qrData.qrDataUrl}
-              alt="UPI QR Code"
-              className="w-56 h-56 sm:w-64 sm:h-64"
-            />
-            <div className="mt-5 text-center space-y-1">
-              <p className="text-lg font-bold text-foreground">{qrData.name}</p>
-              <p className="text-sm text-muted-foreground">{qrData.upiId}</p>
-              <p className="text-2xl font-extrabold text-amount mt-2">
-                ₹{Number(qrData.amount).toLocaleString("en-IN")}
-              </p>
-              <p className="text-xs text-muted-foreground mt-1">{qrData.note}</p>
-            </div>
-          </div>
+          <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} />
 
           {/* Action buttons */}
           <div className="flex gap-3">
@@ -191,12 +193,15 @@ const UpiQrGenerator = () => {
               Download QR
             </button>
             <button
-              onClick={handleTestPayment}
+              onClick={handleShare}
               className="flex-1 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm border border-border transition-all hover:bg-accent active:scale-[0.98]"
             >
-              Test Payment
+              Share QR
             </button>
           </div>
+          {shareMsg && (
+            <p className="text-sm text-primary text-center">{shareMsg}</p>
+          )}
         </div>
       )}
 
@@ -207,36 +212,5 @@ const UpiQrGenerator = () => {
     </div>
   );
 };
-
-/* Reusable input field */
-const InputField = ({
-  label,
-  placeholder,
-  value,
-  error,
-  type = "text",
-  onChange,
-}: {
-  label: string;
-  placeholder: string;
-  value: string;
-  error?: string;
-  type?: string;
-  onChange: (value: string) => void;
-}) => (
-  <div>
-    <label className="block text-sm font-medium text-foreground mb-1.5">
-      {label}
-    </label>
-    <input
-      type={type}
-      placeholder={placeholder}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all"
-    />
-    {error && <p className="mt-1 text-xs text-destructive">{error}</p>}
-  </div>
-);
 
 export default UpiQrGenerator;
