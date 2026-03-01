@@ -15,6 +15,7 @@ export interface QRData {
   note: string;
   label: string;
   logoDataUrl?: string;
+  expiresAt?: string; // ISO string
 }
 
 export type CardStyle = "minimal" | "bold-amount" | "boxed" | "centered";
@@ -22,4 +23,17 @@ export type CardStyle = "minimal" | "bold-amount" | "boxed" | "centered";
 export interface Template {
   upiId: string;
   name: string;
+}
+
+export interface QRHistoryItem {
+  id: string;
+  qrDataUrl: string;
+  upiId: string;
+  name: string;
+  amount: string;
+  note: string;
+  label: string;
+  cardStyle: CardStyle;
+  createdAt: string; // ISO string
+  expiresAt?: string; // ISO string
 }

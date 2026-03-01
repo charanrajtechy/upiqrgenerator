@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { AlertTriangle, Clock } from "lucide-react";
 import type { QRData, CardStyle } from "./types";
 
 interface QRPreviewCardProps {
@@ -11,6 +12,8 @@ const QRPreviewCard = forwardRef<HTMLDivElement, QRPreviewCardProps>(({ qrData, 
   const hasName = !!qrData.name;
   const hasNote = !!qrData.note;
   const hasLabel = !!qrData.label;
+  const hasExpiry = !!qrData.expiresAt;
+  const isExpired = hasExpiry && new Date(qrData.expiresAt!) <= new Date();
 
   const cardClasses: Record<CardStyle, string> = {
     minimal: "bg-card rounded-xl shadow-card p-8",
@@ -54,6 +57,16 @@ const QRPreviewCard = forwardRef<HTMLDivElement, QRPreviewCardProps>(({ qrData, 
           </p>
         )}
         {hasNote && <p className="text-xs text-muted-foreground mt-1">{qrData.note}</p>}
+        {isExpired && (
+          <p className="flex items-center justify-center gap-1 text-xs font-medium text-destructive mt-2">
+            <AlertTriangle className="w-3.5 h-3.5" /> This QR has expired
+          </p>
+        )}
+        {hasExpiry && !isExpired && (
+          <p className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground mt-2">
+            <Clock className="w-3 h-3" /> Expires: {new Date(qrData.expiresAt!).toLocaleString("en-IN")}
+          </p>
+        )}
       </div>
     </div>
   );
