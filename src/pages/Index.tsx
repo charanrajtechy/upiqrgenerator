@@ -7,7 +7,6 @@ import LogoUpload from "@/components/upi/LogoUpload";
 import TemplateActions from "@/components/upi/TemplateActions";
 import StyleSelector from "@/components/upi/StyleSelector";
 import QRPreviewCard from "@/components/upi/QRPreviewCard";
-import ExpiryPicker from "@/components/upi/ExpiryPicker";
 import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
@@ -25,7 +24,6 @@ const UpiQrGenerator = () => {
   });
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [shareMsg, setShareMsg] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const validate = (): boolean => {
@@ -63,8 +61,7 @@ const UpiQrGenerator = () => {
         color: { dark: "#1a1a2e", light: "#ffffff" },
         errorCorrectionLevel: "H",
       });
-      const expiry = expiresAt ? new Date(expiresAt).toISOString() : undefined;
-      const newQrData: QRData = { upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined, expiresAt: expiry };
+      const newQrData: QRData = { upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined };
       setQrData(newQrData);
 
       // Save to history
@@ -78,14 +75,13 @@ const UpiQrGenerator = () => {
         label,
         cardStyle,
         createdAt: new Date().toISOString(),
-        expiresAt: expiry,
       });
     } catch {
       console.error("QR generation failed");
     } finally {
       setGenerating(false);
     }
-  }, [form, logoDataUrl, expiresAt, cardStyle]);
+  }, [form, logoDataUrl, cardStyle]);
 
   const handleShare = useCallback(async () => {
     if (!cardRef.current || !qrData) return;
@@ -130,7 +126,6 @@ const UpiQrGenerator = () => {
       amount: item.amount,
       note: item.note,
       label: item.label,
-      expiresAt: item.expiresAt,
     });
   }, []);
 
@@ -162,7 +157,7 @@ const UpiQrGenerator = () => {
         <TemplateActions upiId={form.upiId} name={form.name} onLoad={handleTemplateLoad} />
 
         <InputField
-          label="Owner Name"
+          label="Payee Name"
           placeholder="Your full name"
           value={form.name}
           error={errors.name}
@@ -201,8 +196,6 @@ const UpiQrGenerator = () => {
         />
 
         <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
-
-        <ExpiryPicker expiresAt={expiresAt} onChange={setExpiresAt} />
 
         <StyleSelector value={cardStyle} onChange={handleStyleChange} />
 

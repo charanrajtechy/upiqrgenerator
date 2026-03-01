@@ -1,5 +1,4 @@
 import { forwardRef } from "react";
-import { AlertTriangle, Clock } from "lucide-react";
 import type { QRData, CardStyle } from "./types";
 
 interface QRPreviewCardProps {
@@ -12,14 +11,12 @@ const QRPreviewCard = forwardRef<HTMLDivElement, QRPreviewCardProps>(({ qrData, 
   const hasName = !!qrData.name;
   const hasNote = !!qrData.note;
   const hasLabel = !!qrData.label;
-  const hasExpiry = !!qrData.expiresAt;
-  const isExpired = hasExpiry && new Date(qrData.expiresAt!) <= new Date();
 
   const cardClasses: Record<CardStyle, string> = {
-    minimal: "bg-card rounded-xl shadow-card p-8",
-    "bold-amount": "bg-card rounded-xl shadow-card p-8 border-2 border-primary/20",
-    boxed: "bg-card rounded-2xl shadow-card-hover p-10 border border-border",
-    centered: "bg-card rounded-xl shadow-card p-8",
+    minimal: "bg-white rounded-xl shadow-card p-8",
+    "bold-amount": "bg-white rounded-xl shadow-card p-8 border-2 border-primary/20",
+    boxed: "bg-white rounded-2xl shadow-card-hover p-10 border border-border",
+    centered: "bg-white rounded-xl shadow-card p-8",
   };
 
   const amountClasses: Record<CardStyle, string> = {
@@ -44,29 +41,19 @@ const QRPreviewCard = forwardRef<HTMLDivElement, QRPreviewCardProps>(({ qrData, 
           <img
             src={qrData.logoDataUrl}
             alt="Logo"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-md bg-card p-1 shadow-sm object-contain"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-md bg-white p-1 shadow-sm object-contain"
           />
         )}
       </div>
       <div className="mt-5 text-center space-y-1">
-        {hasName && <p className="text-lg font-bold text-foreground">{qrData.name}</p>}
-        <p className="text-sm text-muted-foreground">{qrData.upiId}</p>
+        {hasName && <p className="text-lg font-bold text-gray-900">{qrData.name}</p>}
+        <p className="text-sm text-gray-500">{qrData.upiId}</p>
         {hasAmount && (
           <p className={amountClasses[cardStyle]}>
             ₹{Number(qrData.amount).toLocaleString("en-IN")}
           </p>
         )}
-        {hasNote && <p className="text-xs text-muted-foreground mt-1">{qrData.note}</p>}
-        {isExpired && (
-          <p className="flex items-center justify-center gap-1 text-xs font-medium text-destructive mt-2">
-            <AlertTriangle className="w-3.5 h-3.5" /> This QR has expired
-          </p>
-        )}
-        {hasExpiry && !isExpired && (
-          <p className="flex items-center justify-center gap-1 text-[11px] text-muted-foreground mt-2">
-            <Clock className="w-3 h-3" /> Expires: {new Date(qrData.expiresAt!).toLocaleString("en-IN")}
-          </p>
-        )}
+        {hasNote && <p className="text-xs text-gray-500 mt-1">{qrData.note}</p>}
       </div>
     </div>
   );
