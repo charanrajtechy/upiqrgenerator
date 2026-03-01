@@ -7,9 +7,11 @@ import LogoUpload from "@/components/upi/LogoUpload";
 import TemplateActions from "@/components/upi/TemplateActions";
 import StyleSelector from "@/components/upi/StyleSelector";
 import QRPreviewCard from "@/components/upi/QRPreviewCard";
+import ExpiryPicker from "@/components/upi/ExpiryPicker";
+import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
-import type { FormData, QRData, CardStyle, Template } from "@/components/upi/types";
+import type { FormData, QRData, CardStyle, Template, QRHistoryItem } from "@/components/upi/types";
 
 const UPI_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
 
@@ -23,6 +25,7 @@ const UpiQrGenerator = () => {
   });
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [shareMsg, setShareMsg] = useState("");
+  const [expiresAt, setExpiresAt] = useState("");
   const cardRef = useRef<HTMLDivElement>(null);
 
   const validate = (): boolean => {
@@ -60,13 +63,29 @@ const UpiQrGenerator = () => {
         color: { dark: "#1a1a2e", light: "#ffffff" },
         errorCorrectionLevel: "H",
       });
-      setQrData({ upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined });
+      const expiry = expiresAt ? new Date(expiresAt).toISOString() : undefined;
+      const newQrData: QRData = { upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined, expiresAt: expiry };
+      setQrData(newQrData);
+
+      // Save to history
+      addToHistory({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        qrDataUrl,
+        upiId,
+        name,
+        amount,
+        note,
+        label,
+        cardStyle,
+        createdAt: new Date().toISOString(),
+        expiresAt: expiry,
+      });
     } catch {
       console.error("QR generation failed");
     } finally {
       setGenerating(false);
     }
-  }, [form, logoDataUrl]);
+  }, [form, logoDataUrl, expiresAt, cardStyle]);
 
   const handleShare = useCallback(async () => {
     if (!cardRef.current || !qrData) return;
@@ -98,6 +117,21 @@ const UpiQrGenerator = () => {
 
   const handleTemplateLoad = useCallback((t: Template) => {
     setForm((prev) => ({ ...prev, upiId: t.upiId, name: t.name }));
+  }, []);
+
+  const handleHistorySelect = useCallback((item: QRHistoryItem) => {
+    setForm({ upiId: item.upiId, name: item.name, amount: item.amount, note: item.note, label: item.label });
+    setCardStyle(item.cardStyle);
+    setQrData({
+      upiLink: buildUpiLink(item.upiId, item.name, item.amount, item.note),
+      qrDataUrl: item.qrDataUrl,
+      name: item.name,
+      upiId: item.upiId,
+      amount: item.amount,
+      note: item.note,
+      label: item.label,
+      expiresAt: item.expiresAt,
+    });
   }, []);
 
   return (
@@ -168,6 +202,8 @@ const UpiQrGenerator = () => {
 
         <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
 
+        <ExpiryPicker expiresAt={expiresAt} onChange={setExpiresAt} />
+
         <StyleSelector value={cardStyle} onChange={handleStyleChange} />
 
         <button
@@ -177,6 +213,11 @@ const UpiQrGenerator = () => {
         >
           {generating ? "Generating…" : "Generate QR Code"}
         </button>
+      </div>
+
+      {/* QR History */}
+      <div className="w-full max-w-md mt-4">
+        <QRHistory onSelect={handleHistorySelect} />
       </div>
 
       {/* QR Preview */}
