@@ -15,7 +15,6 @@ export interface QRData {
   note: string;
   label: string;
   logoDataUrl?: string;
-  expiresAt?: string; // ISO string
 }
 
 export type CardStyle = "minimal" | "bold-amount" | "boxed" | "centered";
@@ -35,5 +34,4 @@ export interface QRHistoryItem {
   label: string;
   cardStyle: CardStyle;
   createdAt: string; // ISO string
-  expiresAt?: string; // ISO string
 }
