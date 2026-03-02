@@ -18,6 +18,13 @@ export interface QRData {
 }
 
 export type CardStyle = "minimal" | "bold-amount" | "boxed" | "centered";
+export type QRSize = "small" | "medium" | "large";
+
+export const QR_SIZE_MAP: Record<QRSize, number> = {
+  small: 512,
+  medium: 1024,
+  large: 2048,
+};
 
 export interface Template {
   upiId: string;
