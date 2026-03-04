@@ -8,14 +8,18 @@ interface SettingsPageProps {
 
 const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
   const [notifEnabled, setNotifEnabled] = useState(false);
-  const [notifStatus, setNotifStatus] = useState<"default" | "granted" | "denied">("default");
+  const [notifStatus, setNotifStatus] = useState<"default" | "granted" | "denied" | "unsupported">("default");
+
+  const isNotifSupported = typeof window !== "undefined" && "Notification" in window && typeof Notification.requestPermission === "function";
 
   useEffect(() => {
-    if ("Notification" in window) {
-      setNotifStatus(Notification.permission as "default" | "granted" | "denied");
-      setNotifEnabled(Notification.permission === "granted");
+    if (!isNotifSupported) {
+      setNotifStatus("unsupported");
+      return;
     }
-  }, [open]);
+    setNotifStatus(Notification.permission as "default" | "granted" | "denied");
+    setNotifEnabled(Notification.permission === "granted");
+  }, [open, isNotifSupported]);
 
   useEffect(() => {
     if (!open) return;
@@ -26,7 +30,7 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
   }, [open, onClose]);
 
   const handleToggleNotif = useCallback(async () => {
-    if (!("Notification" in window)) return;
+    if (!isNotifSupported) return;
 
     if (Notification.permission === "granted") {
       setNotifEnabled(false);
@@ -39,17 +43,21 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
       return;
     }
 
-    const permission = await Notification.requestPermission();
-    setNotifStatus(permission as "default" | "granted" | "denied");
-    setNotifEnabled(permission === "granted");
+    try {
+      const permission = await Notification.requestPermission();
+      setNotifStatus(permission as "default" | "granted" | "denied");
+      setNotifEnabled(permission === "granted");
 
-    if (permission === "granted") {
-      new Notification("Open UPI QR Generator", {
-        body: "Notifications enabled! You'll receive updates about new features.",
-        icon: "/favicon.ico",
-      });
+      if (permission === "granted") {
+        new Notification("Open UPI QR Generator", {
+          body: "Notifications enabled! You'll receive updates about new features.",
+          icon: "/favicon.ico",
+        });
+      }
+    } catch {
+      setNotifStatus("unsupported");
     }
-  }, []);
+  }, [isNotifSupported]);
 
   if (!open) return null;
 
@@ -74,7 +82,9 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
               <div>
                 <p className="text-sm font-medium text-foreground">Notifications</p>
                 <p className="text-xs text-muted-foreground">
-                  {notifStatus === "denied"
+                  {notifStatus === "unsupported"
+                    ? "Not supported in this app. Use the website instead."
+                    : notifStatus === "denied"
                     ? "Blocked by browser. Enable in browser settings."
                     : notifEnabled
                     ? "You'll receive update notifications"
@@ -85,7 +95,7 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
             <button
               type="button"
               onClick={handleToggleNotif}
-              disabled={notifStatus === "denied"}
+              disabled={notifStatus === "denied" || notifStatus === "unsupported"}
               className={`relative w-11 h-6 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                 notifEnabled ? "bg-primary" : "bg-muted"
               }`}

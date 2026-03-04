@@ -147,7 +147,8 @@ const UpiQrGenerator = () => {
   const handleDownload = useCallback(async () => {
     if (!cardRef.current || !qrData) return;
     saveCurrentToHistory();
-    await downloadQR(cardRef.current, qrData.name, qrData.upiId);
+    const result = await downloadQR(cardRef.current, qrData.name, qrData.upiId);
+    if (result === "shared") { setShareMsg("QR saved via share."); setTimeout(() => setShareMsg(""), 4000); }
   }, [qrData, saveCurrentToHistory]);
 
   const handleChange = (field: keyof FormData, value: string) => {
