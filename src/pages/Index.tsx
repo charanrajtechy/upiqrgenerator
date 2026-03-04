@@ -58,7 +58,7 @@ const UpiQrGenerator = () => {
   const [showCredit, setShowCredit] = useState(true);
   const [detailsCopied, setDetailsCopied] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [advancedOpen, setAdvancedOpen] = useState(true);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
