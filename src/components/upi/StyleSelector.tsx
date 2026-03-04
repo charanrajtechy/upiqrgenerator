@@ -23,9 +23,9 @@ const StyleSelector = ({ value, onChange }: StyleSelectorProps) => (
           key={s.value}
           type="button"
           onClick={() => onChange(s.value)}
-          className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
             value === s.value
-              ? "bg-primary text-primary-foreground border-primary"
+              ? "bg-primary text-primary-foreground border-primary shadow-sm"
               : "bg-secondary text-secondary-foreground border-border hover:bg-accent"
           }`}
         >

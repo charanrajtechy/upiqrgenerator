@@ -19,7 +19,7 @@ const QRSizeSelector = ({ value, onChange }: QRSizeSelectorProps) => (
     <select
       value={value}
       onChange={(e) => onChange(e.target.value as QRSize)}
-      className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all"
+      className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
     >
       {OPTIONS.map((o) => (
         <option key={o.value} value={o.value}>{o.label}</option>

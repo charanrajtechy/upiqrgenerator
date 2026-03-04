@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
+    --background: 0 0% 97%;
     --foreground: 220 20% 10%;
 
     --card: 0 0% 100%;
@@ -18,20 +18,20 @@
     --primary: 210 100% 50%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 40% 96%;
+    --secondary: 210 20% 96%;
     --secondary-foreground: 220 20% 10%;
 
-    --muted: 210 30% 95%;
+    --muted: 210 20% 95%;
     --muted-foreground: 220 10% 46%;
 
-    --accent: 210 100% 96%;
+    --accent: 210 40% 96%;
     --accent-foreground: 210 100% 40%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 210 20% 90%;
-    --input: 210 20% 90%;
+    --border: 210 15% 92%;
+    --input: 210 15% 92%;
     --ring: 210 100% 50%;
 
     --radius: 0.75rem;
@@ -47,8 +47,8 @@
 
     /* Custom tokens */
     --amount-color: 210 100% 45%;
-    --card-shadow: 0 4px 24px -4px hsl(210 40% 80% / 0.5);
-    --card-shadow-hover: 0 8px 32px -4px hsl(210 40% 70% / 0.5);
+    --card-shadow: 0 2px 16px -4px hsl(210 20% 85% / 0.4);
+    --card-shadow-hover: 0 6px 24px -4px hsl(210 20% 80% / 0.45);
   }
 
   .dark {
@@ -72,8 +72,8 @@
     --input: 220 20% 18%;
     --ring: 210 100% 55%;
     --amount-color: 210 100% 60%;
-    --card-shadow: 0 4px 24px -4px hsl(220 40% 5% / 0.5);
-    --card-shadow-hover: 0 8px 32px -4px hsl(220 40% 5% / 0.5);
+    --card-shadow: 0 2px 16px -4px hsl(220 40% 5% / 0.4);
+    --card-shadow-hover: 0 6px 24px -4px hsl(220 40% 5% / 0.45);
   }
 }
 

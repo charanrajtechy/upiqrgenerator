@@ -49,7 +49,7 @@ const InputField = ({
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring/30 focus:border-primary transition-all pr-16"
+          className="w-full px-4 py-3 rounded-xl border border-border bg-background text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all pr-16"
         />
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
           {showValidation && value.trim() && (
@@ -63,7 +63,7 @@ const InputField = ({
             <button
               type="button"
               onClick={handleCopy}
-              className="p-1.5 rounded-md hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              className="p-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               aria-label="Copy UPI ID"
             >
               {copied ? <Check className="w-4 h-4 text-primary" /> : <Copy className="w-4 h-4" />}
