@@ -12,9 +12,9 @@ const PresetAmounts = ({ onSelect, currentAmount }: PresetAmountsProps) => (
         key={amt}
         type="button"
         onClick={() => onSelect(String(amt))}
-        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+        className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
           currentAmount === String(amt)
-            ? "bg-primary text-primary-foreground border-primary"
+            ? "bg-primary text-primary-foreground border-primary shadow-sm"
             : "bg-secondary text-secondary-foreground border-border hover:bg-accent"
         }`}
       >

@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import QRCode from "qrcode";
-import { Copy, Check, RotateCcw } from "lucide-react";
+import { Copy, Check, RotateCcw, ChevronDown } from "lucide-react";
 import ThemeToggle from "@/components/upi/ThemeToggle";
 import InputField from "@/components/upi/InputField";
 import PresetAmounts from "@/components/upi/PresetAmounts";
@@ -13,8 +13,9 @@ import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
 import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
-import type { FormData, QRData, CardStyle, QRSize, QR_SIZE_MAP, Template, QRHistoryItem } from "@/components/upi/types";
+import type { FormData, QRData, CardStyle, QRSize, Template, QRHistoryItem } from "@/components/upi/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 const UPI_REGEX = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9]+$/;
 const SIZE_MAP: Record<QRSize, number> = { small: 512, medium: 1024, large: 2048 };
@@ -25,23 +26,42 @@ function formatAmount(val: string): string {
   return `₹${num.toLocaleString("en-IN")}`;
 }
 
+function loadTemplate(): { upiId: string; name: string } | null {
+  try {
+    const raw = localStorage.getItem("upi_template");
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 const UpiQrGenerator = () => {
-  const [form, setForm] = useState<FormData>({ upiId: "", name: "", amount: "", note: "", label: "" });
+  // Auto-load template for defaults
+  const savedTemplate = loadTemplate();
+
+  const [form, setForm] = useState<FormData>({
+    upiId: savedTemplate?.upiId || "",
+    name: savedTemplate?.name || "",
+    amount: "",
+    note: "",
+    label: "",
+  });
   const [errors, setErrors] = useState<Partial<FormData>>({});
   const [qrData, setQrData] = useState<QRData | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [cardStyle, setCardStyle] = useState<CardStyle>(() => (localStorage.getItem("qr_card_style") as CardStyle) || "minimal");
+  const [cardStyle, setCardStyle] = useState<CardStyle>("bold-amount");
   const [qrSize, setQrSize] = useState<QRSize>("medium");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
   const [shareMsg, setShareMsg] = useState("");
-  const [autoGenerate, setAutoGenerate] = useState(false);
-  const [showCredit, setShowCredit] = useState(false);
+  const [autoGenerate, setAutoGenerate] = useState(true);
+  const [showCredit, setShowCredit] = useState(true);
   const [detailsCopied, setDetailsCopied] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [advancedOpen, setAdvancedOpen] = useState(true);
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  // Skeleton loading simulation
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 600);
     return () => clearTimeout(t);
@@ -60,7 +80,7 @@ const UpiQrGenerator = () => {
     return Object.keys(e).length === 0;
   };
 
-  const generateQR = useCallback(async () => {
+  const generateQR = useCallback(async (saveToHistory = true) => {
     if (!validate()) return;
     setGenerating(true);
     const upiId = form.upiId.trim();
@@ -78,36 +98,57 @@ const UpiQrGenerator = () => {
       });
       const newQrData: QRData = { upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined };
       setQrData(newQrData);
-      addToHistory({
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-        qrDataUrl, upiId, name, amount, note, label, cardStyle,
-        createdAt: new Date().toISOString(),
-      });
+      // Only add to history if not auto-generate, or if explicitly requested
+      if (saveToHistory && !autoGenerate) {
+        addToHistory({
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          qrDataUrl, upiId, name, amount, note, label, cardStyle,
+          createdAt: new Date().toISOString(),
+        });
+      }
     } catch { console.error("QR generation failed"); }
     finally { setGenerating(false); }
-  }, [form, logoDataUrl, cardStyle, qrSize]);
+  }, [form, logoDataUrl, cardStyle, qrSize, autoGenerate]);
+
+  // Save to history on download/share (for auto-generate mode)
+  const saveCurrentToHistory = useCallback(() => {
+    if (!qrData) return;
+    addToHistory({
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      qrDataUrl: qrData.qrDataUrl,
+      upiId: qrData.upiId,
+      name: qrData.name,
+      amount: qrData.amount,
+      note: qrData.note,
+      label: qrData.label,
+      cardStyle,
+      createdAt: new Date().toISOString(),
+    });
+  }, [qrData, cardStyle]);
 
   // Auto-generate with debounce
   useEffect(() => {
     if (!autoGenerate) return;
     if (!form.upiId.trim() || !UPI_REGEX.test(form.upiId.trim())) return;
     if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => { generateQR(); }, 300);
+    debounceRef.current = setTimeout(() => { generateQR(false); }, 300);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [autoGenerate, form, generateQR]);
 
   const handleShare = useCallback(async () => {
     if (!cardRef.current || !qrData) return;
     try {
+      saveCurrentToHistory();
       const result = await shareQR(cardRef.current, qrData.name, qrData.upiId, qrData.amount, qrData.note);
       if (result === "downloaded") { setShareMsg("QR downloaded. You can share it manually."); setTimeout(() => setShareMsg(""), 4000); }
     } catch {}
-  }, [qrData]);
+  }, [qrData, saveCurrentToHistory]);
 
   const handleDownload = useCallback(async () => {
     if (!cardRef.current || !qrData) return;
+    saveCurrentToHistory();
     await downloadQR(cardRef.current, qrData.name, qrData.upiId);
-  }, [qrData]);
+  }, [qrData, saveCurrentToHistory]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -133,10 +174,10 @@ const UpiQrGenerator = () => {
   const handleReset = useCallback(() => {
     setForm({ upiId: "", name: "", amount: "", note: "", label: "" });
     setLogoDataUrl(null);
-    setCardStyle("minimal");
+    setCardStyle("bold-amount");
     setQrData(null);
     setErrors({});
-    setShowCredit(false);
+    setShowCredit(true);
   }, []);
 
   const handleCopyDetails = useCallback(async () => {
@@ -157,15 +198,15 @@ const UpiQrGenerator = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center px-4 py-8 sm:py-12">
         <div className="text-center mb-8 space-y-3 w-full max-w-md">
-          <Skeleton className="h-8 w-64 mx-auto" />
-          <Skeleton className="h-4 w-80 mx-auto" />
+          <Skeleton className="h-8 w-64 mx-auto rounded-xl" />
+          <Skeleton className="h-4 w-80 mx-auto rounded-xl" />
         </div>
         <div className="w-full max-w-md space-y-4">
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-14 w-full rounded-xl" />
+          <Skeleton className="h-14 w-full rounded-xl" />
+          <Skeleton className="h-14 w-full rounded-xl" />
+          <Skeleton className="h-14 w-full rounded-xl" />
+          <Skeleton className="h-14 w-full rounded-xl" />
         </div>
         <FeatureRequestModal />
       </div>
@@ -183,7 +224,7 @@ const UpiQrGenerator = () => {
         </p>
       </div>
 
-      <div className="w-full max-w-md bg-card rounded-xl shadow-card p-6 sm:p-8 space-y-5">
+      <div className="w-full max-w-md bg-card rounded-2xl shadow-card p-6 sm:p-8 space-y-5">
         <InputField
           label="UPI ID"
           placeholder="yourname@paytm"
@@ -194,8 +235,6 @@ const UpiQrGenerator = () => {
           isValid={isUpiValid}
           onChange={(v) => handleChange("upiId", v)}
         />
-
-        <TemplateActions upiId={form.upiId} name={form.name} onLoad={handleTemplateLoad} />
 
         <InputField label="Payee Name" placeholder="Your full name" value={form.name} error={errors.name} optional onChange={(v) => handleChange("name", v)} />
 
@@ -210,51 +249,61 @@ const UpiQrGenerator = () => {
         <InputField label="Payment Note" placeholder="Advance for project work" value={form.note} error={errors.note} optional onChange={(v) => handleChange("note", v)} />
         <InputField label="Payment Title / Label" placeholder="Invoice #1234" value={form.label} optional onChange={(v) => handleChange("label", v)} />
 
-        <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
-        <StyleSelector value={cardStyle} onChange={handleStyleChange} />
-        <QRSizeSelector value={qrSize} onChange={setQrSize} />
+        {/* Advanced Options - Collapsible */}
+        <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
+          <CollapsibleTrigger className="flex items-center justify-between w-full py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+            <span>Advanced Options</span>
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${advancedOpen ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-5 pt-3">
+            <TemplateActions upiId={form.upiId} name={form.name} onLoad={handleTemplateLoad} />
+            <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
+            <StyleSelector value={cardStyle} onChange={handleStyleChange} />
+            <QRSizeSelector value={qrSize} onChange={setQrSize} />
 
-        {/* Auto Generate Toggle */}
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">Auto Generate QR</label>
-          <button
-            type="button"
-            onClick={() => setAutoGenerate((p) => !p)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${autoGenerate ? "bg-primary" : "bg-muted"}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${autoGenerate ? "translate-x-5" : ""}`} />
-          </button>
-        </div>
+            {/* Auto Generate Toggle */}
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Auto Generate QR</label>
+              <button
+                type="button"
+                onClick={() => setAutoGenerate((p) => !p)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${autoGenerate ? "bg-primary" : "bg-muted"}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${autoGenerate ? "translate-x-5" : ""}`} />
+              </button>
+            </div>
 
-        {/* App Credit Toggle */}
-        <div className="flex items-center justify-between">
-          <label className="text-sm font-medium text-foreground">Include App Credit on QR</label>
-          <button
-            type="button"
-            onClick={() => setShowCredit((p) => !p)}
-            className={`relative w-11 h-6 rounded-full transition-colors ${showCredit ? "bg-primary" : "bg-muted"}`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${showCredit ? "translate-x-5" : ""}`} />
-          </button>
-        </div>
+            {/* App Credit Toggle */}
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-foreground">Include App Credit on QR</label>
+              <button
+                type="button"
+                onClick={() => setShowCredit((p) => !p)}
+                className={`relative w-11 h-6 rounded-full transition-colors ${showCredit ? "bg-primary" : "bg-muted"}`}
+              >
+                <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${showCredit ? "translate-x-5" : ""}`} />
+              </button>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleReset}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            >
+              <RotateCcw className="w-4 h-4" /> Reset All Fields
+            </button>
+          </CollapsibleContent>
+        </Collapsible>
 
         {!autoGenerate && (
           <button
-            onClick={generateQR}
+            onClick={() => generateQR(true)}
             disabled={generating}
-            className="w-full py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
+            className="w-full py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50 shadow-sm"
           >
             {generating ? "Generating…" : "Generate QR Code"}
           </button>
         )}
-
-        <button
-          type="button"
-          onClick={handleReset}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-        >
-          <RotateCcw className="w-4 h-4" /> Reset All Fields
-        </button>
       </div>
 
       <div className="w-full max-w-md mt-4">
@@ -266,14 +315,19 @@ const UpiQrGenerator = () => {
           <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} showCredit={showCredit} />
 
           <div className="flex gap-3">
-            <button onClick={handleDownload} className="flex-1 py-3 rounded-lg bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98]">Download QR</button>
-            <button onClick={handleShare} className="flex-1 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm border border-border transition-all hover:bg-accent active:scale-[0.98]">Share QR</button>
+            <button onClick={handleDownload} className="flex-1 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] shadow-sm">Download QR</button>
+            <button
+              onClick={handleShare}
+              className="flex-1 py-3.5 rounded-xl bg-secondary text-secondary-foreground font-semibold text-sm border border-border transition-all hover:bg-accent active:scale-[0.98]"
+            >
+              Share QR
+            </button>
           </div>
 
           <button
             type="button"
             onClick={handleCopyDetails}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
           >
             {detailsCopied ? <><Check className="w-4 h-4 text-primary" /> Payment details copied</> : <><Copy className="w-4 h-4" /> Copy Payment Details</>}
           </button>
