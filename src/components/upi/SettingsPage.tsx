@@ -117,7 +117,7 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
                 <p className="text-sm font-medium text-foreground">Beta Features</p>
                 <p className="text-xs text-muted-foreground">
                   {betaEnabled
-                    ? "You have early access to new features"
+                    ? "You have early access to new features. These features are still being tested and may not work perfectly."
                     : "Get access to new features before rolled globally"}
                 </p>
               </div>
@@ -136,7 +136,7 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
           </div>
           {betaEnabled && (
             <p className="text-[11px] text-amber-500 dark:text-amber-400 text-center px-2">
-              ⚠️ Beta features may not work properly. Give your feedback about Beta Features that what issue are you facing. We will fix them.
+              ⚠️ Beta features may not work properly. Beta features may contain bugs. Give your feedback about Beta Features that what issue are you facing. We will fix them.
             </p>
           )}
         </div>
