@@ -136,7 +136,7 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
           </div>
           {betaEnabled && (
             <p className="text-[11px] text-amber-500 dark:text-amber-400 text-center px-2">
-              ⚠️ Beta features may not work properly. Use at your own risk.
+              ⚠️ Beta features may not work properly. Give your feedback about Beta Features that what issue are you facing. We will fix them.
             </p>
           )}
         </div>
