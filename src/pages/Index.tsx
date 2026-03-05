@@ -11,8 +11,10 @@ import QRPreviewCard from "@/components/upi/QRPreviewCard";
 import QRSizeSelector from "@/components/upi/QRSizeSelector";
 import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
 import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
+import QRAppearanceCustomization from "@/components/upi/QRAppearanceCustomization";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
+import { renderCustomQR, type FinderStyle, type ModuleStyle } from "@/components/upi/renderCustomQR";
 import type { FormData, QRData, CardStyle, QRSize, Template, QRHistoryItem } from "@/components/upi/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -60,6 +62,9 @@ const UpiQrGenerator = () => {
   const [detailsCopied, setDetailsCopied] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [finderStyle, setFinderStyle] = useState<FinderStyle>("square");
+  const [moduleStyle, setModuleStyle] = useState<ModuleStyle>("square");
+  const betaEnabled = typeof window !== "undefined" && localStorage.getItem("beta_features") === "true";
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const { toast } = useToast();
@@ -92,12 +97,29 @@ const UpiQrGenerator = () => {
     const label = form.label.trim();
     const upiLink = buildUpiLink(upiId, name, amount, note);
     try {
-      const qrDataUrl = await QRCode.toDataURL(upiLink, {
-        width: SIZE_MAP[qrSize],
-        margin: 2,
-        color: { dark: "#1a1a2e", light: "#ffffff" },
-        errorCorrectionLevel: "H",
-      });
+      const useCustomRenderer = betaEnabled && (finderStyle !== "square" || moduleStyle !== "square");
+      let qrDataUrl: string;
+
+      if (useCustomRenderer) {
+        qrDataUrl = await renderCustomQR({
+          data: upiLink,
+          size: SIZE_MAP[qrSize],
+          margin: 2,
+          finderStyle,
+          moduleStyle,
+          fgColor: "#1a1a2e",
+          bgColor: "#ffffff",
+          errorCorrectionLevel: "H",
+        });
+      } else {
+        qrDataUrl = await QRCode.toDataURL(upiLink, {
+          width: SIZE_MAP[qrSize],
+          margin: 2,
+          color: { dark: "#1a1a2e", light: "#ffffff" },
+          errorCorrectionLevel: "H",
+        });
+      }
+
       const newQrData: QRData = { upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined };
       setQrData(newQrData);
       // Only add to history if not auto-generate, or if explicitly requested
@@ -110,7 +132,7 @@ const UpiQrGenerator = () => {
       }
     } catch { console.error("QR generation failed"); }
     finally { setGenerating(false); }
-  }, [form, logoDataUrl, cardStyle, qrSize, autoGenerate]);
+  }, [form, logoDataUrl, cardStyle, qrSize, autoGenerate, finderStyle, moduleStyle, betaEnabled]);
 
   // Save to history on download/share (for auto-generate mode)
   const saveCurrentToHistory = useCallback(() => {
@@ -276,6 +298,15 @@ const UpiQrGenerator = () => {
             <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
             <StyleSelector value={cardStyle} onChange={handleStyleChange} />
             <QRSizeSelector value={qrSize} onChange={setQrSize} />
+
+            {betaEnabled && (
+              <QRAppearanceCustomization
+                finderStyle={finderStyle}
+                moduleStyle={moduleStyle}
+                onFinderChange={setFinderStyle}
+                onModuleChange={setModuleStyle}
+              />
+            )}
 
             {/* Auto Generate Toggle */}
             <div className="flex items-center justify-between">
