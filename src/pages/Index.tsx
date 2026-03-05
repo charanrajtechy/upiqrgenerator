@@ -14,6 +14,7 @@ import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
 import type { FormData, QRData, CardStyle, QRSize, Template, QRHistoryItem } from "@/components/upi/types";
+import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
@@ -53,7 +54,7 @@ const UpiQrGenerator = () => {
   const [cardStyle, setCardStyle] = useState<CardStyle>("bold-amount");
   const [qrSize, setQrSize] = useState<QRSize>("medium");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
-  const [shareMsg, setShareMsg] = useState("");
+  
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [showCredit, setShowCredit] = useState(true);
   const [detailsCopied, setDetailsCopied] = useState(false);
@@ -61,6 +62,7 @@ const UpiQrGenerator = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const { toast } = useToast();
 
   useEffect(() => {
     const t = setTimeout(() => setLoaded(true), 600);
@@ -140,16 +142,29 @@ const UpiQrGenerator = () => {
     try {
       saveCurrentToHistory();
       const result = await shareQR(cardRef.current, qrData.name, qrData.upiId, qrData.amount, qrData.note);
-      if (result === "downloaded") { setShareMsg("QR downloaded. You can share it manually."); setTimeout(() => setShareMsg(""), 4000); }
-    } catch {}
-  }, [qrData, saveCurrentToHistory]);
+      toast({ title: result === "shared" ? "QR shared successfully!" : "QR downloaded. You can share it manually.", duration: 3000 });
+    } catch {
+      toast({ title: "Failed to share QR", variant: "destructive", duration: 3000 });
+    }
+  }, [qrData, saveCurrentToHistory, toast]);
 
   const handleDownload = useCallback(async () => {
     if (!cardRef.current || !qrData) return;
     saveCurrentToHistory();
-    const result = await downloadQR(cardRef.current, qrData.name, qrData.upiId);
-    if (result === "shared") { setShareMsg("QR saved via share."); setTimeout(() => setShareMsg(""), 4000); }
-  }, [qrData, saveCurrentToHistory]);
+    try {
+      const result = await downloadQR(cardRef.current, qrData.name, qrData.upiId);
+      toast({ title: result === "shared" ? "QR saved via share!" : "QR downloaded successfully!", duration: 3000 });
+    } catch {
+      toast({ title: "Download failed. Opening share instead…", variant: "destructive", duration: 3000 });
+      // Fallback: try share on download failure
+      try {
+        await shareQR(cardRef.current, qrData.name, qrData.upiId, qrData.amount, qrData.note);
+        toast({ title: "QR shared successfully!", duration: 3000 });
+      } catch {
+        toast({ title: "Failed to download or share QR", variant: "destructive", duration: 3000 });
+      }
+    }
+  }, [qrData, saveCurrentToHistory, toast]);
 
   const handleChange = (field: keyof FormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -333,7 +348,7 @@ const UpiQrGenerator = () => {
             {detailsCopied ? <><Check className="w-4 h-4 text-primary" /> Payment details copied</> : <><Copy className="w-4 h-4" /> Copy Payment Details</>}
           </button>
 
-          {shareMsg && <p className="text-sm text-primary text-center">{shareMsg}</p>}
+          
         </div>
       )}
 
