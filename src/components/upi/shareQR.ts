@@ -37,26 +37,16 @@ export async function shareQR(
   return "downloaded";
 }
 
-export async function downloadQR(cardEl: HTMLElement, name: string, upiId: string): Promise<"shared" | "downloaded"> {
+export async function downloadQR(cardEl: HTMLElement, name: string, upiId: string): Promise<"downloaded"> {
   const blob = await generateCardImage(cardEl);
   const fileName = `upi-qr-${(name || upiId).replace(/\s+/g, "-")}.png`;
-  const file = new File([blob], fileName, { type: "image/png" });
 
-  // On mobile/APK, anchor download doesn't work — use Web Share API to "save" the image
-  if (navigator.canShare && navigator.canShare({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: "UPI QR Code" });
-      return "shared";
-    } catch (e) {
-      // User cancelled share — fall through to anchor download
-    }
-  }
-
-  // Fallback: anchor download (works on desktop browsers)
+  // Always do anchor download — direct save to device
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
   a.download = fileName;
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);

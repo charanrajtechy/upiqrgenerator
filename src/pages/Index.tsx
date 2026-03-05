@@ -152,8 +152,8 @@ const UpiQrGenerator = () => {
     if (!cardRef.current || !qrData) return;
     saveCurrentToHistory();
     try {
-      const result = await downloadQR(cardRef.current, qrData.name, qrData.upiId);
-      toast({ title: result === "shared" ? "QR saved via share!" : "QR downloaded successfully!", duration: 3000 });
+      await downloadQR(cardRef.current, qrData.name, qrData.upiId);
+      toast({ title: "QR downloaded successfully!", duration: 3000 });
     } catch {
       toast({ title: "Download failed. Opening share instead…", variant: "destructive", duration: 3000 });
       // Fallback: try share on download failure
