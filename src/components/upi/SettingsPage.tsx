@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Bell, BellOff } from "lucide-react";
+import { X, Bell, BellOff, FlaskConical } from "lucide-react";
 
 interface SettingsPageProps {
   open: boolean;
@@ -9,6 +9,9 @@ interface SettingsPageProps {
 const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifStatus, setNotifStatus] = useState<"default" | "granted" | "denied" | "unsupported">("default");
+  const [betaEnabled, setBetaEnabled] = useState(() => {
+    try { return localStorage.getItem("beta_features") === "true"; } catch { return false; }
+  });
 
   const isNotifSupported = typeof window !== "undefined" && "Notification" in window && typeof Notification.requestPermission === "function";
 
@@ -103,6 +106,39 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${notifEnabled ? "translate-x-5" : ""}`} />
             </button>
           </div>
+        </div>
+
+        {/* Beta Features Toggle */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-4 rounded-xl bg-secondary/50">
+            <div className="flex items-center gap-3">
+              <FlaskConical className={`w-5 h-5 ${betaEnabled ? "text-primary" : "text-muted-foreground"}`} />
+              <div>
+                <p className="text-sm font-medium text-foreground">Beta Features</p>
+                <p className="text-xs text-muted-foreground">
+                  {betaEnabled
+                    ? "You have early access to new features"
+                    : "Get access to new features before rolled globally"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const next = !betaEnabled;
+                setBetaEnabled(next);
+                localStorage.setItem("beta_features", String(next));
+              }}
+              className={`relative w-11 h-6 rounded-full transition-colors ${betaEnabled ? "bg-primary" : "bg-muted"}`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${betaEnabled ? "translate-x-5" : ""}`} />
+            </button>
+          </div>
+          {betaEnabled && (
+            <p className="text-[11px] text-amber-500 dark:text-amber-400 text-center px-2">
+              ⚠️ Beta features may not work properly. Use at your own risk.
+            </p>
+          )}
         </div>
 
         <p className="text-[10px] text-muted-foreground text-center">
