@@ -299,8 +299,7 @@ const UpiQrGenerator = () => {
             <StyleSelector value={cardStyle} onChange={handleStyleChange} />
             <QRSizeSelector value={qrSize} onChange={setQrSize} />
 
-            {betaEnabled && (
-              <QRAppearanceCustomization
+            <QRAppearanceCustomization
                 finderStyle={finderStyle}
                 moduleStyle={moduleStyle}
                 onFinderChange={setFinderStyle}
