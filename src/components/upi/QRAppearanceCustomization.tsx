@@ -22,9 +22,9 @@ function FinderPreview({ style, selected }: { style: FinderStyle; selected: bool
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="block">
-      <rect x={cell} y={cell} width={cell * 7} height={cell * 7} rx={r} fill="#1a1a2e" />
-      <rect x={cell * 2} y={cell * 2} width={cell * 5} height={cell * 5} rx={ir} fill="white" />
-      <rect x={cell * 3} y={cell * 3} width={cell * 3} height={cell * 3} rx={dr} fill="#1a1a2e" />
+      <rect x={cell} y={cell} width={cell * 7} height={cell * 7} rx={r} className="fill-foreground" />
+      <rect x={cell * 2} y={cell * 2} width={cell * 5} height={cell * 5} rx={ir} className="fill-background" />
+      <rect x={cell * 3} y={cell * 3} width={cell * 3} height={cell * 3} rx={dr} className="fill-foreground" />
     </svg>
   );
 }
