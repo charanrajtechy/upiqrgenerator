@@ -304,8 +304,7 @@ const UpiQrGenerator = () => {
                 moduleStyle={moduleStyle}
                 onFinderChange={setFinderStyle}
                 onModuleChange={setModuleStyle}
-              />
-            )}
+            />
 
             {/* Auto Generate Toggle */}
             <div className="flex items-center justify-between">
