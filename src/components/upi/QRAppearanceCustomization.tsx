@@ -53,16 +53,16 @@ function ModulePreview({ style }: { style: ModuleStyle }) {
 
       switch (style) {
         case "square":
-          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} fill="#1a1a2e" />);
+          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} className="fill-foreground" />);
           break;
         case "dots":
-          modules.push(<circle key={`${r}-${c}`} cx={x + cell / 2} cy={y + cell / 2} r={cell * 0.4} fill="#1a1a2e" />);
+          modules.push(<circle key={`${r}-${c}`} cx={x + cell / 2} cy={y + cell / 2} r={cell * 0.4} className="fill-foreground" />);
           break;
         case "rounded-square":
-          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.25} fill="#1a1a2e" />);
+          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.25} className="fill-foreground" />);
           break;
         case "soft-rounded":
-          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.4} fill="#1a1a2e" />);
+          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.4} className="fill-foreground" />);
           break;
         case "diamond": {
           const cx = x + cell * 0.45;
