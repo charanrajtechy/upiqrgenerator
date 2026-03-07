@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import QRCode from "qrcode";
-import { Copy, Check, RotateCcw, ChevronDown } from "lucide-react";
+import { Copy, Check, RotateCcw, ChevronDown, FileOutput, ScanLine } from "lucide-react";
 import ThemeToggle from "@/components/upi/ThemeToggle";
 import InputField from "@/components/upi/InputField";
 import PresetAmounts from "@/components/upi/PresetAmounts";
@@ -12,6 +12,11 @@ import QRSizeSelector from "@/components/upi/QRSizeSelector";
 import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
 import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
 import QRAppearanceCustomization from "@/components/upi/QRAppearanceCustomization";
+import ExportQRModal from "@/components/upi/ExportQRModal";
+import QRScanTestModal from "@/components/upi/QRScanTestModal";
+import QRZoomModal from "@/components/upi/QRZoomModal";
+import ResetAllDialog from "@/components/upi/ResetAllDialog";
+import AppFooter from "@/components/upi/AppFooter";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
 import { renderCustomQR, type FinderStyle, type ModuleStyle } from "@/components/upi/renderCustomQR";
@@ -40,7 +45,6 @@ function loadTemplate(): { upiId: string; name: string } | null {
 }
 
 const UpiQrGenerator = () => {
-  // Auto-load template for defaults
   const savedTemplate = loadTemplate();
 
   const [form, setForm] = useState<FormData>({
@@ -56,7 +60,7 @@ const UpiQrGenerator = () => {
   const [cardStyle, setCardStyle] = useState<CardStyle>("bold-amount");
   const [qrSize, setQrSize] = useState<QRSize>("medium");
   const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
-  
+
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [showCredit, setShowCredit] = useState(true);
   const [detailsCopied, setDetailsCopied] = useState(false);
@@ -64,6 +68,13 @@ const UpiQrGenerator = () => {
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const [finderStyle, setFinderStyle] = useState<FinderStyle>("square");
   const [moduleStyle, setModuleStyle] = useState<ModuleStyle>("square");
+
+  // Modal states
+  const [exportOpen, setExportOpen] = useState(false);
+  const [scanOpen, setScanOpen] = useState(false);
+  const [zoomOpen, setZoomOpen] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
+
   const betaEnabled = typeof window !== "undefined" && localStorage.getItem("beta_features") === "true";
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -122,7 +133,6 @@ const UpiQrGenerator = () => {
 
       const newQrData: QRData = { upiLink, qrDataUrl, name, upiId, amount, note, label, logoDataUrl: logoDataUrl || undefined };
       setQrData(newQrData);
-      // Only add to history if not auto-generate, or if explicitly requested
       if (saveToHistory && !autoGenerate) {
         addToHistory({
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
@@ -132,9 +142,8 @@ const UpiQrGenerator = () => {
       }
     } catch { console.error("QR generation failed"); }
     finally { setGenerating(false); }
-  }, [form, logoDataUrl, cardStyle, qrSize, autoGenerate, finderStyle, moduleStyle, betaEnabled]);
+  }, [form, logoDataUrl, cardStyle, qrSize, autoGenerate, finderStyle, moduleStyle]);
 
-  // Save to history on download/share (for auto-generate mode)
   const saveCurrentToHistory = useCallback(() => {
     if (!qrData) return;
     addToHistory({
@@ -150,7 +159,6 @@ const UpiQrGenerator = () => {
     });
   }, [qrData, cardStyle]);
 
-  // Auto-generate with debounce
   useEffect(() => {
     if (!autoGenerate) return;
     if (!form.upiId.trim() || !UPI_REGEX.test(form.upiId.trim())) return;
@@ -178,7 +186,6 @@ const UpiQrGenerator = () => {
       toast({ title: "QR downloaded successfully!", duration: 3000 });
     } catch {
       toast({ title: "Download failed. Opening share instead…", variant: "destructive", duration: 3000 });
-      // Fallback: try share on download failure
       try {
         await shareQR(cardRef.current, qrData.name, qrData.upiId, qrData.amount, qrData.note);
         toast({ title: "QR shared successfully!", duration: 3000 });
@@ -216,7 +223,18 @@ const UpiQrGenerator = () => {
     setQrData(null);
     setErrors({});
     setShowCredit(true);
+    setFinderStyle("square");
+    setModuleStyle("square");
   }, []);
+
+  const handleResetAll = useCallback(() => {
+    // Clear all localStorage data
+    const keysToRemove = ["upi_template", "qr_card_style", "qr_history", "beta_features"];
+    keysToRemove.forEach((k) => localStorage.removeItem(k));
+    handleReset();
+    setResetDialogOpen(false);
+    toast({ title: "All settings have been reset successfully.", duration: 3000 });
+  }, [handleReset, toast]);
 
   const handleCopyDetails = useCallback(async () => {
     if (!qrData) return;
@@ -287,7 +305,7 @@ const UpiQrGenerator = () => {
         <InputField label="Payment Note" placeholder="Advance for project work" value={form.note} error={errors.note} optional onChange={(v) => handleChange("note", v)} />
         <InputField label="Payment Title / Label" placeholder="Invoice #1234" value={form.label} optional onChange={(v) => handleChange("label", v)} />
 
-        {/* Advanced Options - Collapsible */}
+        {/* Advanced Options */}
         <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
           <CollapsibleTrigger className="flex items-center justify-between w-full py-2.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
             <span>Advanced Options</span>
@@ -300,10 +318,10 @@ const UpiQrGenerator = () => {
             <QRSizeSelector value={qrSize} onChange={setQrSize} />
 
             <QRAppearanceCustomization
-                finderStyle={finderStyle}
-                moduleStyle={moduleStyle}
-                onFinderChange={setFinderStyle}
-                onModuleChange={setModuleStyle}
+              finderStyle={finderStyle}
+              moduleStyle={moduleStyle}
+              onFinderChange={setFinderStyle}
+              onModuleChange={setModuleStyle}
             />
 
             {/* Auto Generate Toggle */}
@@ -337,6 +355,14 @@ const UpiQrGenerator = () => {
             >
               <RotateCcw className="w-4 h-4" /> Reset All Fields
             </button>
+
+            <button
+              type="button"
+              onClick={() => setResetDialogOpen(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-destructive/30 text-sm font-medium text-destructive hover:bg-destructive/10 transition-all"
+            >
+              <RotateCcw className="w-4 h-4" /> Reset All Settings
+            </button>
           </CollapsibleContent>
         </Collapsible>
 
@@ -357,10 +383,15 @@ const UpiQrGenerator = () => {
 
       {qrData && (
         <div className="mt-8 w-full max-w-md space-y-4 animate-fade-in">
-          <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} showCredit={showCredit} />
+          {/* Clickable QR preview for zoom */}
+          <div className="cursor-pointer" onClick={() => betaEnabled && setZoomOpen(true)}>
+            <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} showCredit={showCredit} />
+          </div>
 
           <div className="flex gap-3">
-            <button onClick={handleDownload} className="flex-1 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] shadow-sm">Download QR</button>
+            <button onClick={handleDownload} className="flex-1 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] shadow-sm">
+              Download QR
+            </button>
             <button
               onClick={handleShare}
               className="flex-1 py-3.5 rounded-xl bg-secondary text-secondary-foreground font-semibold text-sm border border-border transition-all hover:bg-accent active:scale-[0.98]"
@@ -369,6 +400,25 @@ const UpiQrGenerator = () => {
             </button>
           </div>
 
+          {betaEnabled && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setExportOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <FileOutput className="w-4 h-4" /> Export QR
+                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 font-semibold">BETA</span>
+              </button>
+              <button
+                onClick={() => setScanOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <ScanLine className="w-4 h-4" /> Test Scan
+                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 font-semibold">BETA</span>
+              </button>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={handleCopyDetails}
@@ -376,16 +426,43 @@ const UpiQrGenerator = () => {
           >
             {detailsCopied ? <><Check className="w-4 h-4 text-primary" /> Payment details copied</> : <><Copy className="w-4 h-4" /> Copy Payment Details</>}
           </button>
-
-          
         </div>
       )}
 
-      <p className="mt-12 text-xs text-muted-foreground text-center">
-        No data is collected or stored. Everything runs in your browser.
-      </p>
+      <AppFooter />
 
       <FeatureRequestModal />
+
+      {/* Modals */}
+      {qrData && (
+        <>
+          <ExportQRModal
+            open={exportOpen}
+            onClose={() => setExportOpen(false)}
+            qrData={qrData}
+            onSuccess={(msg) => toast({ title: msg, duration: 3000 })}
+            onError={(msg) => toast({ title: msg, variant: "destructive", duration: 3000 })}
+          />
+          <QRScanTestModal
+            open={scanOpen}
+            onClose={() => setScanOpen(false)}
+            expectedData={qrData.upiLink}
+            onSuccess={(msg) => toast({ title: msg, duration: 3000 })}
+            onError={(msg) => toast({ title: msg, variant: "destructive", duration: 3000 })}
+          />
+          <QRZoomModal
+            open={zoomOpen}
+            onClose={() => setZoomOpen(false)}
+            qrData={qrData}
+          />
+        </>
+      )}
+
+      <ResetAllDialog
+        open={resetDialogOpen}
+        onClose={() => setResetDialogOpen(false)}
+        onConfirm={handleResetAll}
+      />
     </div>
   );
 };
