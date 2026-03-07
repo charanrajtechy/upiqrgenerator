@@ -22,9 +22,9 @@ function FinderPreview({ style, selected }: { style: FinderStyle; selected: bool
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="block">
-      <rect x={cell} y={cell} width={cell * 7} height={cell * 7} rx={r} fill="#1a1a2e" />
-      <rect x={cell * 2} y={cell * 2} width={cell * 5} height={cell * 5} rx={ir} fill="white" />
-      <rect x={cell * 3} y={cell * 3} width={cell * 3} height={cell * 3} rx={dr} fill="#1a1a2e" />
+      <rect x={cell} y={cell} width={cell * 7} height={cell * 7} rx={r} className="fill-foreground" />
+      <rect x={cell * 2} y={cell * 2} width={cell * 5} height={cell * 5} rx={ir} className="fill-background" />
+      <rect x={cell * 3} y={cell * 3} width={cell * 3} height={cell * 3} rx={dr} className="fill-foreground" />
     </svg>
   );
 }
@@ -53,16 +53,16 @@ function ModulePreview({ style }: { style: ModuleStyle }) {
 
       switch (style) {
         case "square":
-          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} fill="#1a1a2e" />);
+          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} className="fill-foreground" />);
           break;
         case "dots":
-          modules.push(<circle key={`${r}-${c}`} cx={x + cell / 2} cy={y + cell / 2} r={cell * 0.4} fill="#1a1a2e" />);
+          modules.push(<circle key={`${r}-${c}`} cx={x + cell / 2} cy={y + cell / 2} r={cell * 0.4} className="fill-foreground" />);
           break;
         case "rounded-square":
-          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.25} fill="#1a1a2e" />);
+          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.25} className="fill-foreground" />);
           break;
         case "soft-rounded":
-          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.4} fill="#1a1a2e" />);
+          modules.push(<rect key={`${r}-${c}`} x={x} y={y} width={cell * 0.9} height={cell * 0.9} rx={cell * 0.4} className="fill-foreground" />);
           break;
         case "diamond": {
           const cx = x + cell * 0.45;
@@ -72,7 +72,7 @@ function ModulePreview({ style }: { style: ModuleStyle }) {
             <polygon
               key={`${r}-${c}`}
               points={`${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`}
-              fill="#1a1a2e"
+              className="fill-foreground"
             />
           );
           break;

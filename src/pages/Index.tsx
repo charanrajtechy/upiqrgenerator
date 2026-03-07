@@ -97,7 +97,7 @@ const UpiQrGenerator = () => {
     const label = form.label.trim();
     const upiLink = buildUpiLink(upiId, name, amount, note);
     try {
-      const useCustomRenderer = betaEnabled && (finderStyle !== "square" || moduleStyle !== "square");
+      const useCustomRenderer = finderStyle !== "square" || moduleStyle !== "square";
       let qrDataUrl: string;
 
       if (useCustomRenderer) {
@@ -299,14 +299,12 @@ const UpiQrGenerator = () => {
             <StyleSelector value={cardStyle} onChange={handleStyleChange} />
             <QRSizeSelector value={qrSize} onChange={setQrSize} />
 
-            {betaEnabled && (
-              <QRAppearanceCustomization
+            <QRAppearanceCustomization
                 finderStyle={finderStyle}
                 moduleStyle={moduleStyle}
                 onFinderChange={setFinderStyle}
                 onModuleChange={setModuleStyle}
-              />
-            )}
+            />
 
             {/* Auto Generate Toggle */}
             <div className="flex items-center justify-between">
