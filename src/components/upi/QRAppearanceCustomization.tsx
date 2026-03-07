@@ -72,7 +72,7 @@ function ModulePreview({ style }: { style: ModuleStyle }) {
             <polygon
               key={`${r}-${c}`}
               points={`${cx},${cy - h} ${cx + h},${cy} ${cx},${cy + h} ${cx - h},${cy}`}
-              fill="#1a1a2e"
+              className="fill-foreground"
             />
           );
           break;

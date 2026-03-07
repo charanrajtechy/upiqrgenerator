@@ -97,7 +97,7 @@ const UpiQrGenerator = () => {
     const label = form.label.trim();
     const upiLink = buildUpiLink(upiId, name, amount, note);
     try {
-      const useCustomRenderer = betaEnabled && (finderStyle !== "square" || moduleStyle !== "square");
+      const useCustomRenderer = finderStyle !== "square" || moduleStyle !== "square";
       let qrDataUrl: string;
 
       if (useCustomRenderer) {
