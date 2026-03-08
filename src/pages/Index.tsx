@@ -286,7 +286,7 @@ const UpiQrGenerator = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-8 sm:py-12">
-      <ThemeToggle />
+      
 
       <div className="text-center mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Open UPI QR Generator</h1>
