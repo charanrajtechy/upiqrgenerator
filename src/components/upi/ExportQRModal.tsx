@@ -113,16 +113,6 @@ const ExportQRModal = ({ open, onClose, qrData, onSuccess, onError }: Props) => 
           </div>
         </button>
 
-        <button
-          onClick={handlePrint}
-          className="w-full flex items-center gap-3 p-3.5 rounded-xl border border-border hover:bg-muted transition-all text-left"
-        >
-          <Printer className="w-5 h-5 text-primary flex-shrink-0" />
-          <div>
-            <p className="text-sm font-semibold text-foreground">Print QR</p>
-            <p className="text-[11px] text-muted-foreground">Print-friendly A4 layout</p>
-          </div>
-        </button>
       </div>
     </div>
   );
