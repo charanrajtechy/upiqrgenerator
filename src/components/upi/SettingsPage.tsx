@@ -115,8 +115,8 @@ const SettingsPage = ({ open, onClose, betaEnabled, onBetaChange }: SettingsPage
                 <p className="text-sm font-medium text-foreground">Beta Features</p>
                 <p className="text-xs text-muted-foreground">
                   {betaEnabled
-                    ? "Export QR, Scan Test & Zoom enabled"
-                    : "Enable experimental tools"}
+                    ? "You can now test beta features"
+                    : "Access beta features before rolled out globally"}
                 </p>
               </div>
             </div>
@@ -133,7 +133,7 @@ const SettingsPage = ({ open, onClose, betaEnabled, onBetaChange }: SettingsPage
 
           {betaEnabled && (
             <p className="text-[10px] text-amber-500 text-center">
-              ⚠ Beta features may be unstable or change without notice.
+              ⚠ Beta features may not work properly. Submit your experience — we'll fix them.
             </p>
           )}
         </div>
