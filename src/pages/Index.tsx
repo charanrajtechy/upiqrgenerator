@@ -442,7 +442,8 @@ const UpiQrGenerator = () => {
             onClick={() => {
               const params = qrData.upiLink.split("?")[1] || "";
               const encoded = btoa(params).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-              const url = `${window.location.origin}/p/${encoded}`;
+              const baseUrl = "https://upiqrgenerator.lovable.app";
+              const url = `${baseUrl}/p/${encoded}`;
               navigator.clipboard.writeText(url).then(() => {
                 toast({ title: "Payment page link copied!", duration: 3000 });
               }).catch(() => {
