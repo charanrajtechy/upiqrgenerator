@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Bell, BellOff } from "lucide-react";
+import { X, Bell, BellOff, FlaskConical } from "lucide-react";
 
 interface SettingsPageProps {
   open: boolean;
   onClose: () => void;
+  betaEnabled: boolean;
+  onBetaChange: (enabled: boolean) => void;
 }
 
-const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
+const SettingsPage = ({ open, onClose, betaEnabled, onBetaChange }: SettingsPageProps) => {
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifStatus, setNotifStatus] = useState<"default" | "granted" | "denied" | "unsupported">("default");
 
@@ -76,6 +78,7 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
         </div>
 
         <div className="space-y-4">
+          {/* Notifications */}
           <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-secondary/50">
             <div className="flex items-center gap-3 min-w-0">
               {notifEnabled ? <Bell className="w-5 h-5 text-primary flex-shrink-0" /> : <BellOff className="w-5 h-5 text-muted-foreground flex-shrink-0" />}
@@ -103,8 +106,37 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
               <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${notifEnabled ? "translate-x-5" : ""}`} />
             </button>
           </div>
-        </div>
 
+          {/* Beta Features */}
+          <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-secondary/50">
+            <div className="flex items-center gap-3 min-w-0">
+              <FlaskConical className={`w-5 h-5 flex-shrink-0 ${betaEnabled ? "text-primary" : "text-muted-foreground"}`} />
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-foreground">Beta Features</p>
+                <p className="text-xs text-muted-foreground">
+                  {betaEnabled
+                    ? "Export QR, Scan Test & Zoom enabled"
+                    : "Enable experimental tools"}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => onBetaChange(!betaEnabled)}
+              className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors ${
+                betaEnabled ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${betaEnabled ? "translate-x-5" : ""}`} />
+            </button>
+          </div>
+
+          {betaEnabled && (
+            <p className="text-[10px] text-amber-500 text-center">
+              ⚠ Beta features may be unstable or change without notice.
+            </p>
+          )}
+        </div>
 
         <p className="text-[10px] text-muted-foreground text-center">
           All settings are stored locally in your browser.
