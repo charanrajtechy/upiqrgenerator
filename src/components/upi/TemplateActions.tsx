@@ -47,6 +47,15 @@ const TemplateActions = ({ upiId, name, logoDataUrl, onLoad }: TemplateActionsPr
       showMsg("Invalid template data");
     }
   }, [onLoad]);
+  const handleDelete = useCallback(() => {
+    const raw = localStorage.getItem("upi_template");
+    if (!raw) {
+      showMsg("No template to delete");
+      return;
+    }
+    localStorage.removeItem("upi_template");
+    showMsg("Template deleted!");
+  }, []);
 
   return (
     <div>
