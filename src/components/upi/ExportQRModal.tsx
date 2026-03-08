@@ -28,17 +28,6 @@ const ExportQRModal = ({ open, onClose, qrData, onSuccess, onError }: Props) => 
 
       let y = 25;
 
-      // Logo image if set
-      if (qrData.logoDataUrl) {
-        const logoSize = 18;
-        try {
-          doc.addImage(qrData.logoDataUrl, "PNG", (pageW - logoSize) / 2, y, logoSize, logoSize);
-          y += logoSize + 6;
-        } catch {
-          // skip logo if it fails
-        }
-      }
-
       // Title / Label
       if (qrData.label) {
         doc.setFontSize(18);
@@ -49,7 +38,25 @@ const ExportQRModal = ({ open, onClose, qrData, onSuccess, onError }: Props) => 
 
       // QR Code - centered, large
       const qrSize = 80;
-      doc.addImage(qrData.qrDataUrl, "PNG", (pageW - qrSize) / 2, y, qrSize, qrSize);
+      const qrX = (pageW - qrSize) / 2;
+      const qrY = y;
+      doc.addImage(qrData.qrDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
+
+      // Logo overlay in center of QR
+      if (qrData.logoDataUrl) {
+        const logoSize = 16;
+        const logoX = qrX + (qrSize - logoSize) / 2;
+        const logoY = qrY + (qrSize - logoSize) / 2;
+        try {
+          // White background behind logo for contrast
+          doc.setFillColor(255, 255, 255);
+          doc.roundedRect(logoX - 1, logoY - 1, logoSize + 2, logoSize + 2, 2, 2, "F");
+          doc.addImage(qrData.logoDataUrl, "PNG", logoX, logoY, logoSize, logoSize);
+        } catch {
+          // skip logo if it fails
+        }
+      }
+
       y += qrSize + 12;
 
       // Payee Name
