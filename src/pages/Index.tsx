@@ -491,6 +491,7 @@ const UpiQrGenerator = () => {
             open={scanOpen}
             onClose={() => setScanOpen(false)}
             qrDataUrl={qrData.qrDataUrl}
+            logoDataUrl={logoDataUrl}
             expectedData={qrData.upiLink}
             onSuccess={(msg) => toast({ title: msg, duration: 3000 })}
             onError={(msg) => toast({ title: msg, variant: "destructive", duration: 3000 })}
