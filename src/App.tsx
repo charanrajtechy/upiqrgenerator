@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import PaymentPage from "./pages/PaymentPage";
 import NotFound from "./pages/NotFound";
+import ThemeToggle from "@/components/upi/ThemeToggle";
+import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
 
 const queryClient = new QueryClient();
 
@@ -15,6 +17,8 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ThemeToggle />
+        <FeatureRequestModal />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/p/:data" element={<PaymentPage />} />
