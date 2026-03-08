@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import QRCode from "qrcode";
 import { Copy, Check, RotateCcw, ChevronDown, FileOutput, ScanLine, CheckCircle2, AlertTriangle, Link2 } from "lucide-react";
-import ThemeToggle from "@/components/upi/ThemeToggle";
+
 import InputField from "@/components/upi/InputField";
 import PresetAmounts from "@/components/upi/PresetAmounts";
 import LogoUpload from "@/components/upi/LogoUpload";
@@ -10,7 +10,7 @@ import StyleSelector from "@/components/upi/StyleSelector";
 import QRPreviewCard from "@/components/upi/QRPreviewCard";
 import QRSizeSelector from "@/components/upi/QRSizeSelector";
 import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
-import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
+
 import QRAppearanceCustomization from "@/components/upi/QRAppearanceCustomization";
 import ExportQRModal from "@/components/upi/ExportQRModal";
 import QRScanTestModal from "@/components/upi/QRScanTestModal";
@@ -280,14 +280,13 @@ const UpiQrGenerator = () => {
           <Skeleton className="h-14 w-full rounded-xl" />
           <Skeleton className="h-14 w-full rounded-xl" />
         </div>
-        <FeatureRequestModal />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-8 sm:py-12">
-      <ThemeToggle />
+      
 
       <div className="text-center mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-foreground tracking-tight">Open UPI QR Generator</h1>
@@ -485,7 +484,7 @@ const UpiQrGenerator = () => {
 
       <AppFooter />
 
-      <FeatureRequestModal />
+      
 
       {/* Modals */}
       {qrData && (
