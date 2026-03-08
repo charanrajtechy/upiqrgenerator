@@ -75,13 +75,6 @@ const UpiQrGenerator = () => {
   const [scanOpen, setScanOpen] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
-  const [betaEnabled, setBetaEnabled] = useState(() => localStorage.getItem("beta_features") === "true");
-
-  useEffect(() => {
-    const onStorage = () => setBetaEnabled(localStorage.getItem("beta_features") === "true");
-    window.addEventListener("storage", onStorage);
-    return () => window.removeEventListener("storage", onStorage);
-  }, []);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
