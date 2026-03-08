@@ -42,7 +42,7 @@ const QRPreviewCard = forwardRef<HTMLDivElement, QRPreviewCardProps>(({ qrData, 
           <img
             src={qrData.logoDataUrl}
             alt="Logo"
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 sm:w-14 sm:h-14 rounded-md bg-white p-1 shadow-sm object-contain"
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[56px] max-h-[56px] sm:max-w-[64px] sm:max-h-[64px] rounded-md bg-white p-1 shadow-sm object-contain"
           />
         )}
       </div>
