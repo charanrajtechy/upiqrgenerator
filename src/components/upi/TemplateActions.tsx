@@ -1,14 +1,20 @@
 import { Save, FolderOpen } from "lucide-react";
 import { useCallback, useState } from "react";
-import type { Template } from "./types";
+
+interface Template {
+  upiId: string;
+  name: string;
+  logoDataUrl?: string;
+}
 
 interface TemplateActionsProps {
   upiId: string;
   name: string;
+  logoDataUrl?: string | null;
   onLoad: (template: Template) => void;
 }
 
-const TemplateActions = ({ upiId, name, onLoad }: TemplateActionsProps) => {
+const TemplateActions = ({ upiId, name, logoDataUrl, onLoad }: TemplateActionsProps) => {
   const [message, setMessage] = useState("");
 
   const showMsg = (msg: string) => {
@@ -21,9 +27,11 @@ const TemplateActions = ({ upiId, name, onLoad }: TemplateActionsProps) => {
       showMsg("Enter UPI ID first");
       return;
     }
-    localStorage.setItem("upi_template", JSON.stringify({ upiId: upiId.trim(), name: name.trim() }));
+    const template: Template = { upiId: upiId.trim(), name: name.trim() };
+    if (logoDataUrl) template.logoDataUrl = logoDataUrl;
+    localStorage.setItem("upi_template", JSON.stringify(template));
     showMsg("Template saved!");
-  }, [upiId, name]);
+  }, [upiId, name, logoDataUrl]);
 
   const handleLoad = useCallback(() => {
     const raw = localStorage.getItem("upi_template");
