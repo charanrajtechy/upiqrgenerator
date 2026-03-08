@@ -11,13 +11,40 @@ interface Props {
   onError: (msg: string) => void;
 }
 
+interface DecodedUpi {
+  upiId: string;
+  name: string;
+  amount: string;
+  note: string;
+  raw: string;
+}
+
+function parseUpiLink(data: string): DecodedUpi | null {
+  try {
+    const url = new URL(data);
+    if (url.protocol !== "upi:") return null;
+    const params = url.searchParams;
+    return {
+      upiId: params.get("pa") || "",
+      name: decodeURIComponent(params.get("pn") || ""),
+      amount: params.get("am") || "",
+      note: decodeURIComponent(params.get("tn") || ""),
+      raw: data,
+    };
+  } catch {
+    return null;
+  }
+}
+
 const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, onError }: Props) => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<"success" | "fail" | null>(null);
+  const [decoded, setDecoded] = useState<DecodedUpi | null>(null);
 
   const handleScan = useCallback(async () => {
     setScanning(true);
     setResult(null);
+    setDecoded(null);
 
     try {
       const img = new Image();
@@ -38,6 +65,8 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
 
       if (code) {
         setResult("success");
+        const parsed = parseUpiLink(code.data);
+        setDecoded(parsed);
         if (code.data === expectedData) {
           onSuccess("QR scan successful. The generated QR is valid.");
         } else {
@@ -58,7 +87,7 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
   useEffect(() => {
     if (open) {
       setResult(null);
-      // Auto-scan on open
+      setDecoded(null);
       const t = setTimeout(() => handleScan(), 300);
       return () => clearTimeout(t);
     }
@@ -94,9 +123,46 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
           )}
 
           {result === "success" && (
-            <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
-              <CheckCircle2 className="w-4 h-4" />
-              QR is valid and scannable
+            <div className="w-full space-y-3">
+              <div className="flex items-center justify-center gap-2 text-sm text-green-600 dark:text-green-400 font-medium">
+                <CheckCircle2 className="w-4 h-4" />
+                QR is valid and scannable
+              </div>
+
+              {decoded && (
+                <div className="w-full rounded-xl border border-border bg-muted/50 p-4 space-y-2.5">
+                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Decoded Payment Data</p>
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-xs text-muted-foreground shrink-0">UPI ID</span>
+                      <span className="text-xs font-medium text-foreground text-right break-all">{decoded.upiId || "—"}</span>
+                    </div>
+                    {decoded.name && (
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-xs text-muted-foreground shrink-0">Payee Name</span>
+                        <span className="text-xs font-medium text-foreground text-right">{decoded.name}</span>
+                      </div>
+                    )}
+                    {decoded.amount && (
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-xs text-muted-foreground shrink-0">Amount</span>
+                        <span className="text-xs font-semibold text-primary text-right">₹{Number(decoded.amount).toLocaleString("en-IN")}</span>
+                      </div>
+                    )}
+                    {decoded.note && (
+                      <div className="flex justify-between items-start gap-2">
+                        <span className="text-xs text-muted-foreground shrink-0">Note</span>
+                        <span className="text-xs font-medium text-foreground text-right">{decoded.note}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-[10px] text-green-600 dark:text-green-400 text-center pt-1">
+                    ✓ This is the exact data encoded in your QR code
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
