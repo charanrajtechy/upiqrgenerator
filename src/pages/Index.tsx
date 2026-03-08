@@ -436,6 +436,23 @@ const UpiQrGenerator = () => {
             </button>
           </div>
 
+          {/* Create Payment Page */}
+          <button
+            type="button"
+            onClick={() => {
+              const encoded = btoa(qrData.upiLink);
+              const url = `${window.location.origin}/pay?data=${encoded}`;
+              navigator.clipboard.writeText(url).then(() => {
+                toast({ title: "Payment page link copied!", duration: 3000 });
+              }).catch(() => {
+                window.open(url, "_blank");
+              });
+            }}
+            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-accent text-accent-foreground font-semibold text-sm border border-border hover:bg-muted transition-all active:scale-[0.98]"
+          >
+            <Link2 className="w-4 h-4" /> Create Payment Page
+          </button>
+
           <button
             type="button"
             onClick={handleCopyDetails}
@@ -443,6 +460,9 @@ const UpiQrGenerator = () => {
           >
             {detailsCopied ? <><Check className="w-4 h-4 text-primary" /> Payment details copied</> : <><Copy className="w-4 h-4" /> Copy Payment Details</>}
           </button>
+
+          {/* QR Safety Checker */}
+          <QRSafetyChecker qrDataUrl={qrData.qrDataUrl} logoDataUrl={logoDataUrl} qrMargin={2} />
         </div>
       )}
 
