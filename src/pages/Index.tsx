@@ -484,7 +484,7 @@ const UpiQrGenerator = () => {
 
       <AppFooter />
 
-      <FeatureRequestModal />
+      
 
       {/* Modals */}
       {qrData && (
