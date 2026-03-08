@@ -39,6 +39,7 @@ function decodePaymentData(encoded: string, isPathParam: boolean): PaymentInfo |
 
 const PaymentPage = () => {
   const [searchParams] = useSearchParams();
+  const { data: pathData } = useParams<{ data: string }>();
   const [payment, setPayment] = useState<PaymentInfo | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -47,9 +48,11 @@ const PaymentPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    const data = searchParams.get("data");
-    if (!data) { setError(true); return; }
-    const info = decodePaymentData(data);
+    // Support both /p/:data (path) and /pay?data= (legacy query)
+    const encoded = pathData || searchParams.get("data");
+    if (!encoded) { setError(true); return; }
+    const isPathParam = !!pathData;
+    const info = decodePaymentData(encoded, isPathParam);
     if (!info || !info.upiId) { setError(true); return; }
     setPayment(info);
 
@@ -59,7 +62,7 @@ const PaymentPage = () => {
       color: { dark: "#1a1a2e", light: "#ffffff" },
       errorCorrectionLevel: "H",
     }).then(setQrDataUrl).catch(() => setError(true));
-  }, [searchParams]);
+  }, [searchParams, pathData]);
 
   const handleCopyLink = useCallback(async () => {
     try {
