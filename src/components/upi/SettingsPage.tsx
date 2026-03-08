@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Bell, BellOff, FlaskConical } from "lucide-react";
+import { X, Bell, BellOff } from "lucide-react";
 
 interface SettingsPageProps {
   open: boolean;
