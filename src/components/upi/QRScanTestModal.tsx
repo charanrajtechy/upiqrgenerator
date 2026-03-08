@@ -21,14 +21,15 @@ interface DecodedUpi {
 
 function parseUpiLink(data: string): DecodedUpi | null {
   try {
-    const url = new URL(data);
-    if (url.protocol !== "upi:") return null;
-    const params = url.searchParams;
+    if (!data.startsWith("upi://pay")) return null;
+    const queryStr = data.split("?")[1];
+    if (!queryStr) return null;
+    const params = new URLSearchParams(queryStr);
     return {
       upiId: params.get("pa") || "",
-      name: decodeURIComponent(params.get("pn") || ""),
+      name: params.get("pn") || "",
       amount: params.get("am") || "",
-      note: decodeURIComponent(params.get("tn") || ""),
+      note: params.get("tn") || "",
       raw: data,
     };
   } catch {
