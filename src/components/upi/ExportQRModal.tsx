@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, FileText, Printer } from "lucide-react";
+import { X, FileText } from "lucide-react";
 import { jsPDF } from "jspdf";
 import type { QRData } from "./types";
 
