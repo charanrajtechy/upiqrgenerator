@@ -399,8 +399,8 @@ const UpiQrGenerator = () => {
 
       {qrData && (
         <div className="mt-8 w-full max-w-md space-y-4 animate-fade-in">
-          {/* Clickable QR preview for zoom */}
-          <div className="cursor-pointer" onClick={() => setZoomOpen(true)}>
+          {/* Clickable QR preview for zoom (beta) */}
+          <div className={betaEnabled ? "cursor-pointer" : ""} onClick={betaEnabled ? () => setZoomOpen(true) : undefined}>
             <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} showCredit={showCredit} />
           </div>
 
