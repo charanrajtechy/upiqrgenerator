@@ -101,8 +101,8 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div className="absolute inset-0 bg-black/70" />
-      <div className="relative bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm overflow-hidden animate-scale-in max-h-[90vh] flex flex-col">
-        <div className="flex items-center justify-between p-4">
+      <div className="relative bg-card border border-border rounded-2xl shadow-xl w-full max-w-sm animate-scale-in max-h-[90vh] flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between p-4 shrink-0">
           <div className="flex items-center gap-2">
             <ScanLine className="w-4 h-4 text-primary" />
             <h3 className="text-sm font-bold text-foreground">Test Scan QR</h3>
@@ -112,8 +112,8 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
           </button>
         </div>
 
-        <div className="px-6 pb-4 flex flex-col items-center gap-4 overflow-y-auto">
-          <img src={qrDataUrl} alt="QR to verify" className="w-48 h-48 rounded-lg" />
+        <div className="px-6 pb-4 flex flex-col items-center gap-4 overflow-y-auto min-h-0">
+          <img src={qrDataUrl} alt="QR to verify" className="w-40 h-40 rounded-lg shrink-0" />
 
           {scanning && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
