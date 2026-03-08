@@ -38,7 +38,7 @@ function parseUpiLink(data: string): DecodedUpi | null {
   }
 }
 
-const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, onError }: Props) => {
+const QRScanTestModal = ({ open, onClose, qrDataUrl, logoDataUrl, expectedData, onSuccess, onError }: Props) => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<"success" | "fail" | null>(null);
   const [decoded, setDecoded] = useState<DecodedUpi | null>(null);
