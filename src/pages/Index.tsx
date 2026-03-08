@@ -10,7 +10,7 @@ import StyleSelector from "@/components/upi/StyleSelector";
 import QRPreviewCard from "@/components/upi/QRPreviewCard";
 import QRSizeSelector from "@/components/upi/QRSizeSelector";
 import QRHistory, { addToHistory } from "@/components/upi/QRHistory";
-import FeatureRequestModal from "@/components/upi/FeatureRequestModal";
+
 import QRAppearanceCustomization from "@/components/upi/QRAppearanceCustomization";
 import ExportQRModal from "@/components/upi/ExportQRModal";
 import QRScanTestModal from "@/components/upi/QRScanTestModal";
