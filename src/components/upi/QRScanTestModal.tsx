@@ -112,7 +112,7 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
           </button>
         </div>
 
-        <div className="px-6 pb-4 flex flex-col items-center gap-4">
+        <div className="px-6 pb-4 flex flex-col items-center gap-4 overflow-y-auto">
           <img src={qrDataUrl} alt="QR to verify" className="w-48 h-48 rounded-lg" />
 
           {scanning && (
