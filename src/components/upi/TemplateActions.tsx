@@ -1,4 +1,4 @@
-import { Save, FolderOpen } from "lucide-react";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface Template {
