@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { X, ScanLine, CheckCircle2, AlertTriangle } from "lucide-react";
 import jsQR from "jsqr";
 
@@ -21,14 +21,15 @@ interface DecodedUpi {
 
 function parseUpiLink(data: string): DecodedUpi | null {
   try {
-    const url = new URL(data);
-    if (url.protocol !== "upi:") return null;
-    const params = url.searchParams;
+    if (!data.startsWith("upi://pay")) return null;
+    const queryStr = data.split("?")[1];
+    if (!queryStr) return null;
+    const params = new URLSearchParams(queryStr);
     return {
       upiId: params.get("pa") || "",
-      name: decodeURIComponent(params.get("pn") || ""),
+      name: params.get("pn") || "",
       amount: params.get("am") || "",
-      note: decodeURIComponent(params.get("tn") || ""),
+      note: params.get("tn") || "",
       raw: data,
     };
   } catch {
@@ -40,6 +41,11 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<"success" | "fail" | null>(null);
   const [decoded, setDecoded] = useState<DecodedUpi | null>(null);
+  const hasScannedRef = useRef(false);
+  const onSuccessRef = useRef(onSuccess);
+  const onErrorRef = useRef(onError);
+  onSuccessRef.current = onSuccess;
+  onErrorRef.current = onError;
 
   const handleScan = useCallback(async () => {
     setScanning(true);
@@ -64,32 +70,36 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
       const code = jsQR(imageData.data, imageData.width, imageData.height);
 
       if (code) {
-        setResult("success");
         const parsed = parseUpiLink(code.data);
         setDecoded(parsed);
+        setResult("success");
         if (code.data === expectedData) {
-          onSuccess("QR scan successful. The generated QR is valid.");
+          onSuccessRef.current("QR scan successful. The generated QR is valid.");
         } else {
-          onSuccess("QR scanned successfully! Data detected.");
+          onSuccessRef.current("QR scanned successfully! Data detected.");
         }
       } else {
         setResult("fail");
-        onError("Unable to verify QR. Please regenerate the code.");
+        onErrorRef.current("Unable to verify QR. Please regenerate the code.");
       }
     } catch {
       setResult("fail");
-      onError("Unable to verify QR. Please regenerate the code.");
+      onErrorRef.current("Unable to verify QR. Please regenerate the code.");
     } finally {
       setScanning(false);
     }
-  }, [qrDataUrl, expectedData, onSuccess, onError]);
+  }, [qrDataUrl, expectedData]);
 
   useEffect(() => {
-    if (open) {
+    if (open && !hasScannedRef.current) {
+      hasScannedRef.current = true;
       setResult(null);
       setDecoded(null);
       const t = setTimeout(() => handleScan(), 300);
       return () => clearTimeout(t);
+    }
+    if (!open) {
+      hasScannedRef.current = false;
     }
   }, [open, handleScan]);
 
@@ -176,7 +186,7 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
           <button
             onClick={handleScan}
             disabled={scanning}
-            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50"
+            className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-all disabled:opacity-50 shrink-0"
           >
             {scanning ? "Scanning…" : "Scan Again"}
           </button>
