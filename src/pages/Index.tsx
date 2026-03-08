@@ -17,6 +17,7 @@ import QRScanTestModal from "@/components/upi/QRScanTestModal";
 import QRZoomModal from "@/components/upi/QRZoomModal";
 import ResetAllDialog from "@/components/upi/ResetAllDialog";
 import AppFooter from "@/components/upi/AppFooter";
+import QRSafetyChecker from "@/components/upi/QRSafetyChecker";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
 import { renderCustomQR, type FinderStyle, type ModuleStyle } from "@/components/upi/renderCustomQR";
