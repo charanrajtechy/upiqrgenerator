@@ -280,7 +280,6 @@ const UpiQrGenerator = () => {
           <Skeleton className="h-14 w-full rounded-xl" />
           <Skeleton className="h-14 w-full rounded-xl" />
         </div>
-        <FeatureRequestModal />
       </div>
     );
   }
