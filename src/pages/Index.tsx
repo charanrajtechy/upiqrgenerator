@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import QRCode from "qrcode";
 import { Copy, Check, RotateCcw, ChevronDown, FileOutput, ScanLine, CheckCircle2, AlertTriangle, Link2 } from "lucide-react";
-import ThemeToggle from "@/components/upi/ThemeToggle";
+
 import InputField from "@/components/upi/InputField";
 import PresetAmounts from "@/components/upi/PresetAmounts";
 import LogoUpload from "@/components/upi/LogoUpload";
