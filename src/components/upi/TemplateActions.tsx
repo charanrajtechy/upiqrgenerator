@@ -1,4 +1,4 @@
-import { Save, FolderOpen } from "lucide-react";
+import { Save, FolderOpen, Trash2 } from "lucide-react";
 import { useCallback, useState } from "react";
 
 interface Template {
@@ -47,6 +47,15 @@ const TemplateActions = ({ upiId, name, logoDataUrl, onLoad }: TemplateActionsPr
       showMsg("Invalid template data");
     }
   }, [onLoad]);
+  const handleDelete = useCallback(() => {
+    const raw = localStorage.getItem("upi_template");
+    if (!raw) {
+      showMsg("No template to delete");
+      return;
+    }
+    localStorage.removeItem("upi_template");
+    showMsg("Template deleted!");
+  }, []);
 
   return (
     <div>
@@ -63,7 +72,14 @@ const TemplateActions = ({ upiId, name, logoDataUrl, onLoad }: TemplateActionsPr
           onClick={handleLoad}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-border bg-secondary text-secondary-foreground hover:bg-accent transition-all"
         >
-          <FolderOpen className="w-3.5 h-3.5" /> Load Template
+          <FolderOpen className="w-3.5 h-3.5" /> Load
+        </button>
+        <button
+          type="button"
+          onClick={handleDelete}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-destructive/30 text-destructive hover:bg-destructive/10 transition-all"
+        >
+          <Trash2 className="w-3.5 h-3.5" /> Delete
         </button>
       </div>
       {message && <p className="text-xs text-primary mt-1.5">{message}</p>}

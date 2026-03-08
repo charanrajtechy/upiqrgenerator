@@ -6,6 +6,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   qrDataUrl: string;
+  logoDataUrl?: string | null;
   expectedData: string;
   onSuccess: (msg: string) => void;
   onError: (msg: string) => void;
@@ -37,7 +38,7 @@ function parseUpiLink(data: string): DecodedUpi | null {
   }
 }
 
-const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, onError }: Props) => {
+const QRScanTestModal = ({ open, onClose, qrDataUrl, logoDataUrl, expectedData, onSuccess, onError }: Props) => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState<"success" | "fail" | null>(null);
   const [decoded, setDecoded] = useState<DecodedUpi | null>(null);
@@ -123,7 +124,16 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
         </div>
 
         <div className="px-6 pb-4 flex flex-col items-center gap-3 overflow-y-auto min-h-[200px]">
-          <img src={qrDataUrl} alt="QR to verify" className="w-32 h-32 rounded-lg shrink-0" />
+          <div className="relative shrink-0">
+            <img src={qrDataUrl} alt="QR to verify" className="w-32 h-32 rounded-lg" />
+            {logoDataUrl && (
+              <img
+                src={logoDataUrl}
+                alt="Logo"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-w-[32px] max-h-[32px] rounded-md bg-white p-0.5 shadow-sm object-contain"
+              />
+            )}
+          </div>
 
           {scanning && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
