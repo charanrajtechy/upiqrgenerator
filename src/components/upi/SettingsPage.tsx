@@ -9,9 +9,6 @@ interface SettingsPageProps {
 const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
   const [notifEnabled, setNotifEnabled] = useState(false);
   const [notifStatus, setNotifStatus] = useState<"default" | "granted" | "denied" | "unsupported">("default");
-  const [betaEnabled, setBetaEnabled] = useState(() => {
-    try { return localStorage.getItem("beta_features") === "true"; } catch { return false; }
-  });
 
   const isNotifSupported = typeof window !== "undefined" && "Notification" in window && typeof Notification.requestPermission === "function";
 
