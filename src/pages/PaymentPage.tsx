@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef, useCallback } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useParams } from "react-router-dom";
 import QRCode from "qrcode";
 import { Share2, Copy, Download, Check, ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
