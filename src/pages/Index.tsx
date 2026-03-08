@@ -440,8 +440,14 @@ const UpiQrGenerator = () => {
           <button
             type="button"
             onClick={() => {
-              const params = qrData.upiLink.split("?")[1] || "";
-              const encoded = btoa(params).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+              const payload = JSON.stringify({
+                u: qrData.upiLink.split("?")[1] || "",
+                s: cardStyle,
+                l: qrData.label || "",
+                c: showCredit ? 1 : 0,
+                ...(logoDataUrl ? { i: logoDataUrl } : {}),
+              });
+              const encoded = btoa(payload).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
               const baseUrl = "https://upiqrgenerator.lovable.app";
               const url = `${baseUrl}/p/${encoded}`;
               navigator.clipboard.writeText(url).then(() => {
