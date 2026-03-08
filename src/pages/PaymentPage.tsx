@@ -12,13 +12,19 @@ interface PaymentInfo {
   upiLink: string;
 }
 
-function decodePaymentData(encoded: string): PaymentInfo | null {
+function decodePaymentData(encoded: string, isPathParam: boolean): PaymentInfo | null {
   try {
-    const upiLink = atob(encoded);
-    if (!upiLink.startsWith("upi://pay")) return null;
-    const queryStr = upiLink.split("?")[1];
+    // URL-safe base64 decode
+    let base64 = encoded.replace(/-/g, "+").replace(/_/g, "/");
+    while (base64.length % 4) base64 += "=";
+    const decoded = atob(base64);
+    
+    // Path param contains only query params, legacy ?data= contains full URI
+    const queryStr = isPathParam ? decoded : (decoded.startsWith("upi://pay") ? decoded.split("?")[1] : null);
     if (!queryStr) return null;
+    
     const params = new URLSearchParams(queryStr);
+    const upiLink = isPathParam ? `upi://pay?${decoded}` : decoded;
     return {
       upiId: params.get("pa") || "",
       name: decodeURIComponent(params.get("pn") || ""),
