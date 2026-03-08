@@ -428,20 +428,22 @@ const UpiQrGenerator = () => {
             </button>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => setExportOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-            >
-              <FileOutput className="w-4 h-4" /> Export QR
-            </button>
-            <button
-              onClick={() => setScanOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-            >
-              <ScanLine className="w-4 h-4" /> Test Scan
-            </button>
-          </div>
+          {betaEnabled && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setExportOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <FileOutput className="w-4 h-4" /> Export QR
+              </button>
+              <button
+                onClick={() => setScanOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <ScanLine className="w-4 h-4" /> Test Scan
+              </button>
+            </div>
+          )}
 
           {/* Create Payment Page */}
           <button
