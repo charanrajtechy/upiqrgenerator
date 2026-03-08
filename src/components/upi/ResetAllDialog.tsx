@@ -32,7 +32,7 @@ const ResetAllDialog = ({ open, onClose, onConfirm }: Props) => {
             <li>QR customization styles</li>
             <li>Saved templates</li>
             <li>QR history stored in this browser</li>
-            <li>Beta feature settings</li>
+            
           </ul>
           <p className="text-xs font-medium text-destructive">This action cannot be undone.</p>
         </div>
