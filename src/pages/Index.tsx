@@ -75,6 +75,13 @@ const UpiQrGenerator = () => {
   const [scanOpen, setScanOpen] = useState(false);
   const [zoomOpen, setZoomOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [betaEnabled, setBetaEnabled] = useState(() => localStorage.getItem("beta_features") === "true");
+
+  useEffect(() => {
+    const onStorage = () => setBetaEnabled(localStorage.getItem("beta_features") === "true");
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
@@ -392,8 +399,8 @@ const UpiQrGenerator = () => {
 
       {qrData && (
         <div className="mt-8 w-full max-w-md space-y-4 animate-fade-in">
-          {/* Clickable QR preview for zoom */}
-          <div className="cursor-pointer" onClick={() => setZoomOpen(true)}>
+          {/* Clickable QR preview for zoom (beta) */}
+          <div className={betaEnabled ? "cursor-pointer" : ""} onClick={betaEnabled ? () => setZoomOpen(true) : undefined}>
             <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} showCredit={showCredit} />
           </div>
 
@@ -421,20 +428,22 @@ const UpiQrGenerator = () => {
             </button>
           </div>
 
-          <div className="flex gap-3">
-            <button
-              onClick={() => setExportOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-            >
-              <FileOutput className="w-4 h-4" /> Export QR
-            </button>
-            <button
-              onClick={() => setScanOpen(true)}
-              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-            >
-              <ScanLine className="w-4 h-4" /> Test Scan
-            </button>
-          </div>
+          {betaEnabled && (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setExportOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <FileOutput className="w-4 h-4" /> Export QR
+              </button>
+              <button
+                onClick={() => setScanOpen(true)}
+                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+              >
+                <ScanLine className="w-4 h-4" /> Test Scan
+              </button>
+            </div>
+          )}
 
           {/* Create Payment Page */}
           <button
