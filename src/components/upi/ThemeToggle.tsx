@@ -1,5 +1,5 @@
 import { Moon, Sun, Settings } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import SettingsPage from "./SettingsPage";
 
 const ThemeToggle = () => {
@@ -10,23 +10,11 @@ const ThemeToggle = () => {
     return false;
   });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [betaEnabled, setBetaEnabled] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("beta_features") === "true";
-    }
-    return false;
-  });
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
     localStorage.setItem("theme", dark ? "dark" : "light");
   }, [dark]);
-
-  const handleBetaChange = useCallback((enabled: boolean) => {
-    setBetaEnabled(enabled);
-    localStorage.setItem("beta_features", enabled ? "true" : "false");
-    window.dispatchEvent(new Event("storage"));
-  }, []);
 
   return (
     <>
@@ -46,7 +34,7 @@ const ThemeToggle = () => {
           <Settings className="w-5 h-5 text-foreground" />
         </button>
       </div>
-      <SettingsPage open={settingsOpen} onClose={() => setSettingsOpen(false)} betaEnabled={betaEnabled} onBetaChange={handleBetaChange} />
+      <SettingsPage open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   );
 };
