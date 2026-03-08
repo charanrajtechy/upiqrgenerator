@@ -122,7 +122,7 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
           </button>
         </div>
 
-        <div className="px-6 pb-4 flex flex-col items-center gap-3 overflow-y-auto" style={{ maxHeight: "calc(90vh - 120px)" }}>
+        <div className="px-6 pb-4 flex flex-col items-center gap-3 overflow-y-auto min-h-[200px]">
           <img src={qrDataUrl} alt="QR to verify" className="w-32 h-32 rounded-lg shrink-0" />
 
           {scanning && (
