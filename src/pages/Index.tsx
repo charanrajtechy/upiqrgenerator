@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import QRCode from "qrcode";
-import { Copy, Check, RotateCcw, ChevronDown, FileOutput, ScanLine } from "lucide-react";
+import { Copy, Check, RotateCcw, ChevronDown, FileOutput, ScanLine, CheckCircle2, AlertTriangle } from "lucide-react";
 import ThemeToggle from "@/components/upi/ThemeToggle";
 import InputField from "@/components/upi/InputField";
 import PresetAmounts from "@/components/upi/PresetAmounts";
@@ -20,7 +20,7 @@ import AppFooter from "@/components/upi/AppFooter";
 import { buildUpiLink } from "@/components/upi/buildUpiLink";
 import { shareQR, downloadQR } from "@/components/upi/shareQR";
 import { renderCustomQR, type FinderStyle, type ModuleStyle } from "@/components/upi/renderCustomQR";
-import type { FormData, QRData, CardStyle, QRSize, Template, QRHistoryItem } from "@/components/upi/types";
+import type { FormData, QRData, CardStyle, QRSize, QRHistoryItem } from "@/components/upi/types";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -34,7 +34,7 @@ function formatAmount(val: string): string {
   return `₹${num.toLocaleString("en-IN")}`;
 }
 
-function loadTemplate(): { upiId: string; name: string } | null {
+function loadTemplate(): { upiId: string; name: string; logoDataUrl?: string } | null {
   try {
     const raw = localStorage.getItem("upi_template");
     if (!raw) return null;
@@ -59,7 +59,7 @@ const UpiQrGenerator = () => {
   const [generating, setGenerating] = useState(false);
   const [cardStyle, setCardStyle] = useState<CardStyle>("bold-amount");
   const [qrSize, setQrSize] = useState<QRSize>("medium");
-  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(null);
+  const [logoDataUrl, setLogoDataUrl] = useState<string | null>(savedTemplate?.logoDataUrl || null);
 
   const [autoGenerate, setAutoGenerate] = useState(true);
   const [showCredit, setShowCredit] = useState(true);
@@ -75,7 +75,6 @@ const UpiQrGenerator = () => {
   const [zoomOpen, setZoomOpen] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
 
-  const betaEnabled = typeof window !== "undefined" && localStorage.getItem("beta_features") === "true";
   const cardRef = useRef<HTMLDivElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>();
   const { toast } = useToast();
@@ -86,6 +85,15 @@ const UpiQrGenerator = () => {
   }, []);
 
   const isUpiValid = UPI_REGEX.test(form.upiId.trim());
+
+  // QR Status indicator
+  const getQrStatus = () => {
+    if (!qrData) return null;
+    if (!form.upiId.trim()) return { type: "warning" as const, msg: "⚠ UPI ID is required" };
+    if (!UPI_REGEX.test(form.upiId.trim())) return { type: "warning" as const, msg: "⚠ Invalid UPI ID format" };
+    return { type: "success" as const, msg: "✓ QR Ready for Payment" };
+  };
+  const qrStatus = getQrStatus();
 
   const validate = (): boolean => {
     const e: Partial<FormData> = {};
@@ -202,8 +210,9 @@ const UpiQrGenerator = () => {
 
   const handleStyleChange = (style: CardStyle) => { setCardStyle(style); localStorage.setItem("qr_card_style", style); };
 
-  const handleTemplateLoad = useCallback((t: Template) => {
+  const handleTemplateLoad = useCallback((t: { upiId: string; name: string; logoDataUrl?: string }) => {
     setForm((prev) => ({ ...prev, upiId: t.upiId, name: t.name }));
+    if (t.logoDataUrl) setLogoDataUrl(t.logoDataUrl);
   }, []);
 
   const handleHistorySelect = useCallback((item: QRHistoryItem) => {
@@ -228,7 +237,6 @@ const UpiQrGenerator = () => {
   }, []);
 
   const handleResetAll = useCallback(() => {
-    // Clear all localStorage data
     const keysToRemove = ["upi_template", "qr_card_style", "qr_history", "beta_features"];
     keysToRemove.forEach((k) => localStorage.removeItem(k));
     handleReset();
@@ -312,7 +320,7 @@ const UpiQrGenerator = () => {
             <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${advancedOpen ? "rotate-180" : ""}`} />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-5 pt-3">
-            <TemplateActions upiId={form.upiId} name={form.name} onLoad={handleTemplateLoad} />
+            <TemplateActions upiId={form.upiId} name={form.name} logoDataUrl={logoDataUrl} onLoad={handleTemplateLoad} />
             <LogoUpload logoDataUrl={logoDataUrl} onLogoChange={setLogoDataUrl} />
             <StyleSelector value={cardStyle} onChange={handleStyleChange} />
             <QRSizeSelector value={qrSize} onChange={setQrSize} />
@@ -384,9 +392,21 @@ const UpiQrGenerator = () => {
       {qrData && (
         <div className="mt-8 w-full max-w-md space-y-4 animate-fade-in">
           {/* Clickable QR preview for zoom */}
-          <div className="cursor-pointer" onClick={() => betaEnabled && setZoomOpen(true)}>
+          <div className="cursor-pointer" onClick={() => setZoomOpen(true)}>
             <QRPreviewCard ref={cardRef} qrData={qrData} cardStyle={cardStyle} showCredit={showCredit} />
           </div>
+
+          {/* QR Status Indicator */}
+          {qrStatus && (
+            <div className={`flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-medium ${
+              qrStatus.type === "success"
+                ? "text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30"
+                : "text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30"
+            }`}>
+              {qrStatus.type === "success" ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+              {qrStatus.msg}
+            </div>
+          )}
 
           <div className="flex gap-3">
             <button onClick={handleDownload} className="flex-1 py-3.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all hover:opacity-90 active:scale-[0.98] shadow-sm">
@@ -400,24 +420,20 @@ const UpiQrGenerator = () => {
             </button>
           </div>
 
-          {betaEnabled && (
-            <div className="flex gap-3">
-              <button
-                onClick={() => setExportOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-              >
-                <FileOutput className="w-4 h-4" /> Export QR
-                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 font-semibold">BETA</span>
-              </button>
-              <button
-                onClick={() => setScanOpen(true)}
-                className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-              >
-                <ScanLine className="w-4 h-4" /> Test Scan
-                <span className="text-[9px] px-1 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 font-semibold">BETA</span>
-              </button>
-            </div>
-          )}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setExportOpen(true)}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            >
+              <FileOutput className="w-4 h-4" /> Export QR
+            </button>
+            <button
+              onClick={() => setScanOpen(true)}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-border text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            >
+              <ScanLine className="w-4 h-4" /> Test Scan
+            </button>
+          </div>
 
           <button
             type="button"
@@ -446,6 +462,7 @@ const UpiQrGenerator = () => {
           <QRScanTestModal
             open={scanOpen}
             onClose={() => setScanOpen(false)}
+            qrDataUrl={qrData.qrDataUrl}
             expectedData={qrData.upiLink}
             onSuccess={(msg) => toast({ title: msg, duration: 3000 })}
             onError={(msg) => toast({ title: msg, variant: "destructive", duration: 3000 })}
