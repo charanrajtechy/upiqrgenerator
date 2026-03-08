@@ -182,7 +182,7 @@ const QRScanTestModal = ({ open, onClose, qrDataUrl, expectedData, onSuccess, on
           </button>
         </div>
 
-        <p className="text-[11px] text-muted-foreground text-center p-3 border-t border-border">
+        <p className="text-[11px] text-muted-foreground text-center p-3 border-t border-border shrink-0">
           This verifies the generated QR code by decoding it programmatically.
         </p>
       </div>
