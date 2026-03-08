@@ -105,38 +105,6 @@ const SettingsPage = ({ open, onClose }: SettingsPageProps) => {
           </div>
         </div>
 
-        {/* Beta Features Toggle */}
-        <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3 p-4 rounded-xl bg-secondary/50">
-            <div className="flex items-center gap-3 min-w-0">
-              <FlaskConical className={`w-5 h-5 flex-shrink-0 ${betaEnabled ? "text-primary" : "text-muted-foreground"}`} />
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-foreground">Beta Features</p>
-                <p className="text-xs text-muted-foreground">
-                  {betaEnabled
-                    ? "You have early access to new features. These features are still being tested and may not work perfectly."
-                    : "Get access to new features before rolled globally"}
-                </p>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                const next = !betaEnabled;
-                setBetaEnabled(next);
-                localStorage.setItem("beta_features", String(next));
-              }}
-              className={`relative w-11 h-6 flex-shrink-0 rounded-full transition-colors ${betaEnabled ? "bg-primary" : "bg-muted"}`}
-            >
-              <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${betaEnabled ? "translate-x-5" : ""}`} />
-            </button>
-          </div>
-          {betaEnabled && (
-            <p className="text-[11px] text-amber-500 dark:text-amber-400 text-center px-2">
-              ⚠️ Beta features may not work properly. Beta features may contain bugs. Give your feedback about Beta Features that what issue are you facing. We will fix them.
-            </p>
-          )}
-        </div>
 
         <p className="text-[10px] text-muted-foreground text-center">
           All settings are stored locally in your browser.

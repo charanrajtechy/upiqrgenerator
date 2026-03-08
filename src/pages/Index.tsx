@@ -237,7 +237,7 @@ const UpiQrGenerator = () => {
   }, []);
 
   const handleResetAll = useCallback(() => {
-    const keysToRemove = ["upi_template", "qr_card_style", "qr_history", "beta_features"];
+    const keysToRemove = ["upi_template", "qr_card_style", "qr_history"];
     keysToRemove.forEach((k) => localStorage.removeItem(k));
     handleReset();
     setResetDialogOpen(false);

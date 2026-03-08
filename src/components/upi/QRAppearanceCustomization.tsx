@@ -110,7 +110,6 @@ const QRAppearanceCustomization = ({ finderStyle, moduleStyle, onFinderChange, o
       <CollapsibleTrigger className="flex items-center justify-between w-full py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
         <span className="flex items-center gap-2">
           QR Appearance Customization
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 font-semibold">BETA</span>
         </span>
         <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${open ? "rotate-90" : ""}`} />
       </CollapsibleTrigger>

@@ -17,8 +17,7 @@ const SOCIAL_LINKS = [
 
 const AppFooter = () => {
   const [aboutOpen, setAboutOpen] = useState(false);
-  const betaEnabled = typeof window !== "undefined" && localStorage.getItem("beta_features") === "true";
-  const version = betaEnabled ? "v3.9.0.5 (Beta)" : "v2.5.8";
+  const version = "v3.9.1";
 
   return (
     <>
