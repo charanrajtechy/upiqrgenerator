@@ -6,6 +6,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   qrDataUrl: string;
+  logoDataUrl?: string | null;
   expectedData: string;
   onSuccess: (msg: string) => void;
   onError: (msg: string) => void;
